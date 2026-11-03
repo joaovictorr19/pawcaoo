@@ -34,6 +34,7 @@ const COPY = {
     emptyText:
       "O pódio abre assim que chegarem as primeiras reviews. Cada estrela e cada comentário contam.",
     loading: "A carregar o pódio…",
+    gotIt: "Entendi",
     reviews: "reviews",
   },
   en: {
@@ -52,6 +53,7 @@ const COPY = {
     emptyTitle: "No points yet this month",
     emptyText: "The podium opens as soon as the first reviews arrive. Every star and comment counts.",
     loading: "Loading the podium…",
+    gotIt: "Got it",
     reviews: "reviews",
   },
   es: {
@@ -70,6 +72,7 @@ const COPY = {
     emptyTitle: "Aún sin puntos este mes",
     emptyText: "El podio se abre en cuanto lleguen las primeras reseñas. Cada estrella y comentario cuentan.",
     loading: "Cargando el podio…",
+    gotIt: "Entendido",
     reviews: "reseñas",
   },
   fr: {
@@ -88,6 +91,7 @@ const COPY = {
     emptyTitle: "Aucun point ce mois-ci",
     emptyText: "Le podium s'ouvre dès les premiers avis. Chaque étoile et chaque commentaire comptent.",
     loading: "Chargement du podium…",
+    gotIt: "Compris",
     reviews: "avis",
   },
 };
@@ -226,22 +230,33 @@ export default function MonthlyReviewPodium() {
       )}
 
       <Dialog open={rulesOpen} onOpenChange={setRulesOpen}>
-        <DialogContent className="podium-rules-dialog max-h-[85vh] overflow-y-auto sm:rounded-3xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-black text-amber-400">{copy.rulesTitle}</DialogTitle>
-            <DialogDescription className="text-xs leading-relaxed text-gray-400">
-              {copy.rulesIntro}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="podium-rules-dialog w-[calc(100%-2rem)] max-w-md gap-0 border-0 p-0">
+          <div className="podium-rules-head">
+            <span className="podium-rules-kicker">
+              <Star className="h-2.5 w-2.5 fill-current" />
+              {copy.rules}
+            </span>
+            <DialogTitle className="podium-rules-title">{copy.rulesTitle}</DialogTitle>
+            <DialogDescription className="podium-rules-intro">{copy.rulesIntro}</DialogDescription>
+          </div>
 
-          <ul className="space-y-3">
-            {copy.items.map((item) => (
-              <li key={item} className="flex gap-2.5 text-xs leading-relaxed text-gray-300">
-                <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />
+          <ul className="podium-rules-list">
+            {copy.items.map((item, index) => (
+              <li key={item}>
+                <span className="podium-rules-index">{index + 1}</span>
                 <span>{item}</span>
               </li>
             ))}
           </ul>
+
+          <div className="podium-rules-foot">
+            <Button
+              onClick={() => setRulesOpen(false)}
+              className="podium-rules-ok"
+            >
+              {copy.gotIt}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
