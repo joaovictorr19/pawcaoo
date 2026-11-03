@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -243,25 +243,19 @@ const MissionCard = ({ mission, isFlipped, onFlip }) => {
             </Badge>
 
             {/* Ícone Central */}
-            <motion.div 
+            <div 
               className={`w-24 h-24 rounded-full flex items-center justify-center ${
-                mission.rarity === 'legendary' ? 'bg-gradient-to-br from-amber-500/30 to-orange-600/30 border-2 border-amber-500' :
-                mission.rarity === 'epic' ? 'bg-gradient-to-br from-purple-500/30 to-pink-600/30 border-2 border-purple-500' :
-                'bg-gradient-to-br from-blue-500/30 to-cyan-600/30 border-2 border-blue-500'
+                mission.rarity === 'legendary' ? 'bg-gradient-to-br from-amber-500/30 to-orange-600/30 border-2 border-amber-500 shadow-[0_0_32px_rgba(245,158,11,0.45)]' :
+                mission.rarity === 'epic' ? 'bg-gradient-to-br from-purple-500/30 to-pink-600/30 border-2 border-purple-500 shadow-[0_0_24px_rgba(168,85,247,0.3)]' :
+                'bg-gradient-to-br from-blue-500/30 to-cyan-600/30 border-2 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.25)]'
               }`}
-              animate={{ 
-                boxShadow: mission.rarity === 'legendary' 
-                  ? ['0 0 20px rgba(245,158,11,0.5)', '0 0 40px rgba(245,158,11,0.8)', '0 0 20px rgba(245,158,11,0.5)']
-                  : ['0 0 10px rgba(255,255,255,0.2)', '0 0 20px rgba(255,255,255,0.4)', '0 0 10px rgba(255,255,255,0.2)']
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
             >
               <Icon className={`w-12 h-12 ${
                 mission.rarity === 'legendary' ? 'text-amber-400' :
                 mission.rarity === 'epic' ? 'text-purple-400' :
                 'text-blue-400'
               }`} />
-            </motion.div>
+            </div>
 
             {/* Título */}
             <div className="text-center">
@@ -365,7 +359,7 @@ export default function Gamification() {
     queryFn: () => getCurrentUser(),
   });
 
-  const { data: userProfile } = useQuery({
+  const { data: userProfile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['userProfileGamification', user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
@@ -373,9 +367,11 @@ export default function Gamification() {
       return profiles[0] || null;
     },
     enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
-  const { data: allUsers = [], refetch } = useQuery({
+  const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsersRanking'],
     queryFn: async () => {
       const profiles = await base44.entities.UserProfile.list('-updated_date', 1000);
@@ -401,21 +397,21 @@ export default function Gamification() {
       return Array.from(deduped.values())
         .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0));
     },
-    staleTime: 0,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
-  // Forçar recarregamento ao montar para garantir ranking atualizado
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-
-  const rankedUsers = [...allUsers]
-    .filter((profile) => profile.user_email)
-    .sort((a, b) => {
-      const xpDiff = (b.gamification_xp || 0) - (a.gamification_xp || 0);
-      if (xpDiff !== 0) return xpDiff;
-      return (b.gamification_level || 1) - (a.gamification_level || 1);
-    });
+  const rankedUsers = useMemo(
+    () =>
+      [...allUsers]
+        .filter((profile) => profile.user_email)
+        .sort((a, b) => {
+          const xpDiff = (b.gamification_xp || 0) - (a.gamification_xp || 0);
+          if (xpDiff !== 0) return xpDiff;
+          return (b.gamification_level || 1) - (a.gamification_level || 1);
+        }),
+    [allUsers]
+  );
 
   const userRank = rankedUsers.findIndex(p => p.user_email === user?.email) + 1;
 
@@ -503,24 +499,9 @@ export default function Gamification() {
 
       {/* Nevoeiro laranja animado */}
       <div className="absolute inset-0 pointer-events-none">
-        <motion.div
-          className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-orange-600/10 rounded-full blur-[150px]"
-          animate={{ 
-            x: [0, 100, 0], 
-            y: [0, 50, 0],
-            opacity: [0.1, 0.2, 0.1] 
-          }}
-          transition={{ duration: 15, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[150px]"
-          animate={{ 
-            x: [0, -80, 0], 
-            y: [0, -60, 0],
-            opacity: [0.1, 0.15, 0.1] 
-          }}
-          transition={{ duration: 12, repeat: Infinity, delay: 2 }}
-        />
+        {/* Gradientes estáticos: mesmo ambiente, sem repintar em cada frame */}
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-orange-600/10 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[150px]" />
       </div>
 
       {/* ========== SECÇÃO 1: O LEGADO DOS TITÃS ========== */}
@@ -744,11 +725,7 @@ export default function Gamification() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <motion.div
-                className="inline-flex items-center gap-2 bg-black/50 border border-amber-500/30 rounded-full px-4 py-1 mb-4"
-                animate={{ boxShadow: ['0 0 10px rgba(245,158,11,0.2)', '0 0 20px rgba(245,158,11,0.4)', '0 0 10px rgba(245,158,11,0.2)'] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
+              <div className="inline-flex items-center gap-2 bg-black/50 border border-amber-500/30 rounded-full px-4 py-1 mb-4 shadow-[0_0_18px_rgba(245,158,11,0.25)]">
                 <Star className="w-4 h-4 text-amber-400" />
                 <span className="text-amber-400 text-sm font-bold uppercase tracking-wider">
                   Nível {currentLevel}
@@ -762,7 +739,7 @@ export default function Gamification() {
                     #{userRank}
                   </Badge>
                 )}
-              </motion.div>
+              </div>
 
               <h1 className="text-3xl md:text-5xl font-black text-white mb-3 tracking-tight">
                 {title}

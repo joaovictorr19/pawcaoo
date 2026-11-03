@@ -106,19 +106,31 @@ function formatRemaining(remainingMs) {
   return `${days}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
 }
 
-export default function MonthlyReviewPodium() {
-  const { language } = useLanguage();
-  const copy = COPY[language] || COPY.pt;
+/* Contagem decrescente isolada: só este relógio re-renderiza a cada segundo,
+   o pódio (avatares e animações) mantém-se estável. */
+function ResetCountdown({ endTime, label }) {
   const [now, setNow] = useState(() => Date.now());
-  const [rulesOpen, setRulesOpen] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  const minuteKey = Math.floor(now / 60000);
-  const monthRange = useMemo(() => getLisbonMonthRange(new Date(now)), [minuteKey]);
+  return (
+    <div className="flex items-center gap-2 rounded-full border border-amber-500/30 bg-black/40 px-3 py-1.5 text-[11px] font-semibold text-amber-400 sm:text-xs">
+      <Timer className="h-3.5 w-3.5" />
+      <span className="text-amber-500/70">{label}</span>
+      <span className="tabular-nums">{formatRemaining(endTime - now)}</span>
+    </div>
+  );
+}
+
+export default function MonthlyReviewPodium() {
+  const { language } = useLanguage();
+  const copy = COPY[language] || COPY.pt;
+  const [rulesOpen, setRulesOpen] = useState(false);
+
+  const monthRange = useMemo(() => getLisbonMonthRange(new Date()), []);
 
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ["monthlyReviewPodium", monthRange.start.toISOString()],
@@ -172,11 +184,7 @@ export default function MonthlyReviewPodium() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
-        <div className="flex items-center gap-2 rounded-full border border-amber-500/30 bg-black/40 px-3 py-1.5 text-[11px] font-semibold text-amber-400 sm:text-xs">
-          <Timer className="h-3.5 w-3.5" />
-          <span className="text-amber-500/70">{copy.resetsIn}</span>
-          <span className="tabular-nums">{formatRemaining(monthRange.end.getTime() - now)}</span>
-        </div>
+        <ResetCountdown endTime={monthRange.end.getTime()} label={copy.resetsIn} />
 
         <Button
           variant="ghost"
