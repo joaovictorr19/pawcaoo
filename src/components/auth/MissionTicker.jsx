@@ -1,116 +1,126 @@
 import { useEffect, useState } from "react";
+import { ShieldCheck, LockKeyhole, LayoutGrid } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import "./missionTicker.css";
 
-const DURATION = 6500;
+const DURATION = 11000;
+
+const CHIPS = {
+  pt: ["Selo verificado", "Pagamento seguro", "Tudo num só lugar"],
+  en: ["Verified seal", "Secure payment", "All in one place"],
+  es: ["Sello verificado", "Pago seguro", "Todo en un solo lugar"],
+  fr: ["Sceau vérifié", "Paiement sécurisé", "Tout au même endroit"],
+};
+
+const CHIP_ICONS = [ShieldCheck, LockKeyhole, LayoutGrid];
 
 const CONTENT = {
   pt: [
     {
       label: "A nossa missão",
-      title: "Simplificar o cuidado animal sem nunca comprometer a confiança.",
-      text: "Existimos para acabar com a frustração das plataformas confusas: ligamos donos a passeadores, treinadores, groomers e hotéis caninos em segundos, com transparência e zero burocracia.",
+      title: "Cuidar do teu cão devia ser simples, claro e seguro.",
+      text: "Passeios, treino, grooming e hotel canino numa só plataforma: escolhes o profissional, reservas em minutos e acompanhas cada serviço num diário com fotos.",
     },
     {
       label: "Porque existimos",
-      title: "Encontrar quem cuide bem do teu cão não devia ser uma lotaria.",
-      text: "Reunimos hotéis, passeadores, treinadores e groomers num só lugar, com avaliações reais de quem já confiou neles e com cada serviço registado num diário que podes consultar.",
+      title: "Encontrar um profissional de confiança não devia depender de sorte.",
+      text: "Na PawCão tens passeadores, treinadores, groomers e hotéis caninos verificados, com preços à vista e avaliações de reservas reais — sem dezenas de contactos nem negociações por mensagem.",
     },
     {
       label: "Selo PawCão",
-      title: "Verificamos pessoalmente cada profissional antes de lhe darmos o selo.",
-      text: "Não basta um registo online: deslocamo-nos ao local, conhecemos o profissional, avaliamos as instalações e validamos as condições de trabalho. É assim que garantimos confiança real.",
+      title: "Verificamos cada profissional em pessoa antes de dar o selo.",
+      text: "Visitamos o espaço, conhecemos quem vai cuidar do teu cão, avaliamos as instalações e validamos as condições de trabalho. É isto que separa um selo real de uma simples inscrição online.",
+    },
+    {
+      label: "Vantagem PawCão",
+      title: "Pagamento seguro e valor retido até o serviço terminar.",
+      text: "O dinheiro fica protegido na plataforma e só é libertado quando o serviço é concluído. Comissões transparentes, sem surpresas, e histórico completo de tudo o que contrataste.",
     },
     {
       label: "Sobre nós",
-      title: "Uma plataforma portuguesa nascida no Porto.",
-      text: "Criada por quem tem cão e construída em conjunto com tutores e profissionais, já a crescer em Portugal e Espanha com a ambição de ser a número 1 no mundo.",
-    },
-    {
-      label: "A nossa promessa",
-      title: "Confiança em cada reserva.",
-      text: "Pagamentos protegidos, histórico completo de serviços e apoio próximo — para que só te preocupes em voltar a ver o teu cão feliz.",
+      title: "Uma plataforma portuguesa, feita por quem tem cão.",
+      text: "Nasceu no Porto e cresce em Portugal e Espanha, construída lado a lado com tutores e profissionais. A ambição é ser a referência mundial em cuidado animal.",
     },
   ],
   en: [
     {
       label: "Our mission",
-      title: "Simplifying pet care without ever compromising trust.",
-      text: "We exist to end the frustration of confusing platforms: we connect owners with walkers, trainers, groomers and dog hotels in seconds, with transparency and zero bureaucracy.",
+      title: "Caring for your dog should be simple, clear and safe.",
+      text: "Walks, training, grooming and dog hotels on one platform: pick the professional, book in minutes and follow every service in a photo diary.",
     },
     {
       label: "Why we exist",
-      title: "Finding someone who cares well for your dog shouldn't be a lottery.",
-      text: "We bring hotels, walkers, trainers and groomers together in one place, with real reviews from people who already trusted them and every service logged in a diary you can follow.",
+      title: "Finding someone you can trust shouldn't be down to chance.",
+      text: "PawCão gives you verified walkers, trainers, groomers and dog hotels, with upfront prices and reviews from real bookings — no dozens of messages or negotiations.",
     },
     {
       label: "The PawCão Seal",
-      title: "We personally check every professional before awarding the seal.",
-      text: "An online registration isn't enough: we visit the place, meet the professional, assess the facilities and validate the working conditions. That's how we ensure real trust.",
+      title: "We check every professional in person before the seal.",
+      text: "We visit the place, meet the person who will care for your dog, assess the facilities and validate the working conditions. That's what separates a real seal from an online sign-up.",
+    },
+    {
+      label: "The PawCão advantage",
+      title: "Secure payment, held until the service is complete.",
+      text: "Your money stays protected on the platform and is only released once the service is finished. Transparent fees, no surprises, and a full history of everything you booked.",
     },
     {
       label: "About us",
-      title: "A Portuguese platform born in Porto.",
-      text: "Created by dog people and shaped with owners and professionals, now growing across Portugal and Spain with the ambition to be number one in the world.",
-    },
-    {
-      label: "Our promise",
-      title: "Trust in every booking.",
-      text: "Protected payments, full service history and close support, so all you worry about is seeing your dog happy again.",
+      title: "A Portuguese platform built by dog people.",
+      text: "Born in Porto and growing across Portugal and Spain, shaped side by side with owners and professionals. Our ambition is to be the global reference in pet care.",
     },
   ],
   es: [
     {
       label: "Nuestra misión",
-      title: "Simplificar el cuidado animal sin comprometer nunca la confianza.",
-      text: "Existimos para acabar con la frustración de las plataformas confusas: conectamos dueños con paseadores, adiestradores, peluqueros y hoteles caninos en segundos, con transparencia y cero burocracia.",
+      title: "Cuidar de tu perro debería ser simple, claro y seguro.",
+      text: "Paseos, adiestramiento, peluquería y hoteles caninos en una sola plataforma: elige al profesional, reserva en minutos y sigue cada servicio en un diario con fotos.",
     },
     {
       label: "Por qué existimos",
-      title: "Encontrar a quien cuide bien de tu perro no debería ser una lotería.",
-      text: "Reunimos hoteles, paseadores, adiestradores y peluqueros en un solo lugar, con opiniones reales de quienes ya confiaron en ellos y cada servicio registrado en un diario que puedes consultar.",
+      title: "Encontrar a alguien de confianza no debería depender de la suerte.",
+      text: "En PawCão tienes paseadores, adiestradores, peluqueros y hoteles caninos verificados, con precios claros y opiniones de reservas reales, sin decenas de mensajes ni negociaciones.",
     },
     {
       label: "Sello PawCão",
-      title: "Verificamos personalmente a cada profesional antes de darle el sello.",
-      text: "No basta con un registro online: nos desplazamos al lugar, conocemos al profesional, evaluamos las instalaciones y validamos las condiciones de trabajo. Así garantizamos confianza real.",
+      title: "Verificamos a cada profesional en persona antes del sello.",
+      text: "Visitamos el espacio, conocemos a quien cuidará de tu perro, evaluamos las instalaciones y validamos las condiciones de trabajo. Eso separa un sello real de un simple registro online.",
+    },
+    {
+      label: "Ventaja PawCão",
+      title: "Pago seguro y dinero retenido hasta que el servicio termina.",
+      text: "El importe queda protegido en la plataforma y solo se libera al completar el servicio. Comisiones transparentes, sin sorpresas, e historial completo de todo lo contratado.",
     },
     {
       label: "Sobre nosotros",
-      title: "Una plataforma portuguesa nacida en Oporto.",
-      text: "Creada por gente con perro y construida junto a tutores y profesionales, ya creciendo en Portugal y España con la ambición de ser la número 1 del mundo.",
-    },
-    {
-      label: "Nuestra promesa",
-      title: "Confianza en cada reserva.",
-      text: "Pagos protegidos, historial completo de servicios y apoyo cercano, para que solo te preocupes por ver a tu perro feliz otra vez.",
+      title: "Una plataforma portuguesa, hecha por gente con perro.",
+      text: "Nació en Oporto y crece en Portugal y España junto a tutores y profesionales. La ambición es ser la referencia mundial en cuidado animal.",
     },
   ],
   fr: [
     {
       label: "Notre mission",
-      title: "Simplifier le soin animal sans jamais compromettre la confiance.",
-      text: "Nous existons pour mettre fin à la frustration des plateformes confuses : nous relions les propriétaires à des promeneurs, éducateurs, toiletteurs et hôtels canins en quelques secondes, avec transparence et zéro bureaucratie.",
+      title: "Prendre soin de votre chien devrait être simple, clair et sûr.",
+      text: "Promenades, éducation, toilettage et hôtels canins sur une seule plateforme : choisissez le professionnel, réservez en quelques minutes et suivez chaque prestation dans un journal photo.",
     },
     {
       label: "Pourquoi nous existons",
-      title: "Trouver quelqu'un qui s'occupe bien de votre chien ne devrait pas être une loterie.",
-      text: "Nous réunissons hôtels, promeneurs, éducateurs et toiletteurs au même endroit, avec de vrais avis de ceux qui leur ont déjà fait confiance et chaque prestation consignée dans un journal consultable.",
+      title: "Trouver une personne de confiance ne devrait pas relever du hasard.",
+      text: "PawCão réunit des promeneurs, éducateurs, toiletteurs et hôtels canins vérifiés, avec des prix affichés et de vrais avis issus de réservations, sans dizaines de messages à envoyer.",
     },
     {
       label: "Le Sceau PawCão",
-      title: "Nous vérifions personnellement chaque professionnel avant de décerner le sceau.",
-      text: "Une inscription en ligne ne suffit pas : nous nous déplaçons sur place, rencontrons le professionnel, évaluons les locaux et validons les conditions de travail. C'est ainsi que nous garantissons une confiance réelle.",
+      title: "Nous vérifions chaque professionnel sur place avant le sceau.",
+      text: "Nous visitons les lieux, rencontrons la personne qui s'occupera de votre chien, évaluons les installations et validons les conditions de travail. C'est ce qui distingue un vrai sceau d'une simple inscription en ligne.",
+    },
+    {
+      label: "L'avantage PawCão",
+      title: "Paiement sécurisé, fonds retenus jusqu'à la fin de la prestation.",
+      text: "Le montant reste protégé sur la plateforme et n'est versé qu'une fois la prestation terminée. Commissions transparentes, sans surprise, et historique complet de vos réservations.",
     },
     {
       label: "À propos",
-      title: "Une plateforme portugaise née à Porto.",
-      text: "Créée par des amoureux des chiens et construite avec les propriétaires et les professionnels, déjà présente au Portugal et en Espagne avec l'ambition d'être la numéro un mondiale.",
-    },
-    {
-      label: "Notre promesse",
-      title: "La confiance à chaque réservation.",
-      text: "Paiements protégés, historique complet des prestations et accompagnement proche, pour ne penser qu'à revoir votre chien heureux.",
+      title: "Une plateforme portugaise, créée par des amoureux des chiens.",
+      text: "Née à Porto et présente au Portugal et en Espagne, construite avec les propriétaires et les professionnels. Notre ambition : devenir la référence mondiale du soin animal.",
     },
   ],
 };
@@ -118,6 +128,7 @@ const CONTENT = {
 export default function MissionTicker() {
   const { language } = useLanguage();
   const items = CONTENT[language] || CONTENT.pt;
+  const chips = CHIPS[language] || CHIPS.pt;
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -159,6 +170,18 @@ export default function MissionTicker() {
           </span>
         ))}
       </div>
+
+      <ul className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/10 pt-6">
+        {chips.map((chip, i) => {
+          const Icon = CHIP_ICONS[i];
+          return (
+            <li key={chip} className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">
+              <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+              {chip}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

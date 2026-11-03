@@ -18,7 +18,7 @@
   height: 100%;
   width: 0;
   background: #ffffff;
-  animation: mt-fill 6500ms linear forwards;
+  animation: mt-fill 11000ms linear forwards;
 }
 
 @keyframes mt-fill {
