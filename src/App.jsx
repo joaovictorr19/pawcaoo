@@ -107,7 +107,6 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PageLoader from '@/components/ui/PageLoader';
-import { useIsMobile } from "@/hooks/use-mobile";
 import TabKeepAlive, { findActiveTab } from "@/components/layout/TabKeepAlive";
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -162,7 +161,6 @@ const LayoutWrapper = ({ children, currentPageName }) => {
 const AuthenticatedApp = () => {
   const location = useLocation();
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
-  const isMobile = useIsMobile();
 
   // Direção da navegação (avançar vs voltar) — alimenta as transições de página
   const historyKeysRef = React.useRef([]);
@@ -192,17 +190,23 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // Transições: mobile desliza (push entra pela direita / volta sai pela direita);
-  // desktop mantém o fade existente.
+  // Transições: fade curto com um leve deslize vertical, igual em mobile e desktop.
+  // Sem deslocamentos horizontais — eram a causa da sensação de página "quebrada".
   const onTabPage = !!findActiveTab(location.pathname);
-  // Transições leves e rápidas: voltar é quase instantâneo (apenas fade curto),
-  // avançar mantém um slide subtil mas mais rápido. Reduz a perceção de atraso
-  // ao abrir/voltar páginas.
-  const variants = isMobile
-    ? (isBackNav
-        ? { initial: { opacity: 0.5 }, animate: { opacity: 1 }, exit: { opacity: 0 } }
-        : { initial: { x: "100%", opacity: 1 }, animate: { x: 0, opacity: 1 }, exit: { x: "-15%", opacity: 0.5 } })
-    : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
+  const reduceMotion =
+    typeof window !== "undefined" &&
+    !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const variants = reduceMotion
+    ? { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 1 } }
+    : {
+        initial: { opacity: 0, y: 6 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0 },
+      };
+  const pageTransition = {
+    duration: reduceMotion ? 0 : isBackNav ? 0.12 : 0.2,
+    ease: [0.22, 1, 0.36, 1],
+  };
 
   return (
     <LayoutWrapper currentPageName={mainPageKey}>
@@ -215,7 +219,7 @@ const AuthenticatedApp = () => {
         initial={variants.initial}
         animate={variants.animate}
         exit={variants.exit}
-        transition={{ duration: isBackNav ? (isMobile ? 0.12 : 0.1) : (isMobile ? 0.18 : 0.15), ease: [0.32, 0.72, 0, 1] }}
+        transition={pageTransition}
       >
         <Suspense fallback={<PageLoader />}>
           <Routes location={location}>

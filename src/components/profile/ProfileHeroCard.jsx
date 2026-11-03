@@ -14,6 +14,7 @@ import { animalConfig } from "@/components/professionals/AnimalIcons";
 import { getLevelFromXP } from "@/components/gamification/tierSystem";
 import { STAY_SERVICE_TYPES } from "@/hooks/useHotelCapacity";
 import { useSealConfiguration, getProfileSeals, sealToBorderStyle } from "@/hooks/useSealConfiguration";
+import "@/components/profile/profileSkeleton.css";
 
 const AVAILABILITY_LABELS = {
   morning:   { pt: "Manhã",      en: "Morning",   es: "Mañana" },
@@ -202,7 +203,7 @@ export default function ProfileHeroCard({
         {coverUrl ? (
           <>
             {!coverLoaded && (
-              <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-200/70 to-slate-100 bg-[length:200%_100%] animate-shimmer" />
+              <div className="absolute inset-0 ps-bar" />
             )}
             <img
               src={coverUrl}
