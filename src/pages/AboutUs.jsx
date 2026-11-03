@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import LegacyExplanation from "@/components/about/LegacyExplanation";
 
 const PAWCAO_LOGO_URL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/e3013a5a7_IMG_3975.jpg";
 
@@ -470,6 +471,13 @@ export default function AboutUs() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* LEGADO GAMIFICADO */}
+      <section className="px-4 pb-16 md:pb-24">
+        <div className="max-w-6xl mx-auto">
+          <LegacyExplanation language={language} />
         </div>
       </section>
 
