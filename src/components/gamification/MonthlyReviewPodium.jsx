@@ -1,15 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Info, Star, Timer } from "lucide-react";
+import { Info, Star, Timer, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/components/LanguageContext";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import PodiumPedestal from "@/components/gamification/PodiumPedestal";
@@ -35,6 +35,7 @@ const COPY = {
       "O pódio abre assim que chegarem as primeiras reviews. Cada estrela e cada comentário contam.",
     loading: "A carregar o pódio…",
     gotIt: "Entendi",
+    close: "Fechar",
     reviews: "reviews",
   },
   en: {
@@ -54,6 +55,7 @@ const COPY = {
     emptyText: "The podium opens as soon as the first reviews arrive. Every star and comment counts.",
     loading: "Loading the podium…",
     gotIt: "Got it",
+    close: "Close",
     reviews: "reviews",
   },
   es: {
@@ -73,6 +75,7 @@ const COPY = {
     emptyText: "El podio se abre en cuanto lleguen las primeras reseñas. Cada estrella y comentario cuentan.",
     loading: "Cargando el podio…",
     gotIt: "Entendido",
+    close: "Cerrar",
     reviews: "reseñas",
   },
   fr: {
@@ -92,6 +95,7 @@ const COPY = {
     emptyText: "Le podium s'ouvre dès les premiers avis. Chaque étoile et chaque commentaire comptent.",
     loading: "Chargement du podium…",
     gotIt: "Compris",
+    close: "Fermer",
     reviews: "avis",
   },
 };
@@ -230,7 +234,10 @@ export default function MonthlyReviewPodium() {
       )}
 
       <Dialog open={rulesOpen} onOpenChange={setRulesOpen}>
-        <DialogContent className="podium-rules-dialog w-[calc(100%-2rem)] max-w-md gap-0 border-0 p-0">
+        <DialogContent className="podium-rules-dialog w-[calc(100%-2rem)] max-w-md gap-0 border-0 p-0 [&>button]:hidden">
+          <DialogClose className="podium-rules-x" aria-label={copy.close}>
+            <X className="h-3.5 w-3.5" />
+          </DialogClose>
           <div className="podium-rules-head">
             <span className="podium-rules-kicker">
               <Star className="h-2.5 w-2.5 fill-current" />
