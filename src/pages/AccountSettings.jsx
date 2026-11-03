@@ -135,17 +135,17 @@ export default function AccountSettings() {
   });
 
   useEffect(() => {
-    if (prevProfilePending && !updateProfileMutation.isPending && updateProfileMutation.isSuccess && !updateProfileMutation.variables?.preferences) {
+    if (prevProfilePending.current && !updateProfileMutation.isPending && updateProfileMutation.isSuccess && !updateProfileMutation.variables?.preferences) {
       setShowProfileSaved(true);
     }
-    prevProfilePending = updateProfileMutation.isPending;
+    prevProfilePending.current = updateProfileMutation.isPending;
   }, [updateProfileMutation.isPending, updateProfileMutation.isSuccess, updateProfileMutation.variables]);
 
   useEffect(() => {
-    if (prevPrefsPending && !updateProfileMutation.isPending && updateProfileMutation.isSuccess && updateProfileMutation.variables?.preferences) {
+    if (prevPrefsPending.current && !updateProfileMutation.isPending && updateProfileMutation.isSuccess && updateProfileMutation.variables?.preferences) {
       setShowPrefsSaved(true);
     }
-    prevPrefsPending = updateProfileMutation.isPending;
+    prevPrefsPending.current = updateProfileMutation.isPending;
   }, [updateProfileMutation.isPending, updateProfileMutation.isSuccess, updateProfileMutation.variables]);
 
   useEffect(() => {
