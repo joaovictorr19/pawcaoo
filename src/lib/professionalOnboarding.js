@@ -1,4 +1,5 @@
 import { base44 } from "@/api/base44Client";
+import { registerOwnAccount } from "@/lib/accountRegime";
 
 export const DOG_SIZES = [
   { value: "small", label: "Pequeno", desc: "até 10kg" },
@@ -321,6 +322,7 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
     queryClient.invalidateQueries(["myWalkerProfile"]);
     queryClient.invalidateQueries(["allWalkers"]);
 
+    await registerOwnAccount();
     return existingProfile;
   }
 
@@ -396,5 +398,6 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
   queryClient.invalidateQueries(["existingProfessionalProfile"]);
   queryClient.invalidateQueries(["myWalkerProfile"]);
 
+  await registerOwnAccount();
   return profile;
 }

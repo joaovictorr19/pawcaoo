@@ -9,6 +9,7 @@ import {
   Store, Camera, MapPin, ChevronRight, ChevronLeft, CheckCircle, Upload, Phone,
 } from "lucide-react";
 import { DOCUMENT_RULES, geocodeLocation, uploadFile } from "@/lib/professionalOnboarding";
+import { registerOwnAccount } from "@/lib/accountRegime";
 import CardPhotoAdjuster from "@/components/ui/CardPhotoAdjuster";
 
 const STEPS = ["A Loja", "Documentos", "Confirmação"];
@@ -181,6 +182,7 @@ export default function ShopOnboarding() {
       queryClient.invalidateQueries(["currentUser"]);
       queryClient.invalidateQueries(["existingShopProfile"]);
       sessionStorage.removeItem("shop_onboarding_form");
+      await registerOwnAccount();
 
       toast.success(
         isEditing

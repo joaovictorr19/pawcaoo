@@ -3,16 +3,38 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Building2, Dog, User, ChevronRight, Sparkles, Loader2, Store } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { effectiveRegime, regimeMeta } from "@/lib/accountLabels";
+import { fetchMyAccount, REGIME_HOME } from "@/lib/accountRegime";
+import AccountRegimeNotice from "@/components/onboarding/AccountRegimeNotice";
 
 export default function ProfessionalTypeSelect() {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
+  const [account, setAccount] = useState(null);
 
   useEffect(() => {
     const checkExistingProfile = async () => {
       try {
         const user = await base44.auth.me();
         if (!user?.email) { setChecking(false); return; }
+
+        // Regime canónico da conta (registo central)
+        const registryAccount = await fetchMyAccount().catch(() => null);
+        setAccount(registryAccount);
+
+        // Conta já verificada num regime profissional — entra no painel desse regime
+        const currentRegime = effectiveRegime(registryAccount);
+        if (
+          registryAccount?.status === "verified" &&
+          currentRegime && currentRegime !== "customer" &&
+          REGIME_HOME[currentRegime]
+        ) {
+          navigate(REGIME_HOME[currentRegime], { replace: true });
+          return;
+        }
+
+        // Contas sem registo canónico: mantém a verificação pelos perfis existentes
+        if (registryAccount) { setChecking(false); return; }
 
         // Verificar se já tem perfil de walker/trainer/hotel
         const walkers = await base44.entities.WalkerProfile.filter({ user_id: user.id });
@@ -59,6 +81,7 @@ export default function ProfessionalTypeSelect() {
       icon: Dog,
       color: "orange",
       route: "/WalkerOnboarding",
+      regimes: ["walker", "trainer"],
     },
     {
       type: "hotel",
@@ -67,6 +90,7 @@ export default function ProfessionalTypeSelect() {
       icon: Building2,
       color: "purple",
       route: "/HotelOnboarding",
+      regimes: ["hotel"],
     },
     {
       type: "shop",
@@ -75,6 +99,7 @@ export default function ProfessionalTypeSelect() {
       icon: Store,
       color: "teal",
       route: "/ShopOnboarding",
+      regimes: ["shop"],
     },
     {
       type: "client",
@@ -83,8 +108,25 @@ export default function ProfessionalTypeSelect() {
       icon: User,
       color: "blue",
       route: "/ClientSetup",
+      regimes: ["customer"],
     },
   ];
+
+  const currentRegime = effectiveRegime(account);
+
+  const choose = (opt) => {
+    const keepsSameRegime = currentRegime && opt.regimes.includes(currentRegime);
+    // Já é profissional noutro regime: confirmar antes de abrir uma segunda adesão
+    if (currentRegime && currentRegime !== "customer" && !keepsSameRegime && opt.type !== "client") {
+      const currentLabel = regimeMeta(currentRegime)?.label || currentRegime;
+      const proceed = window.confirm(
+        `A tua conta já está registada como ${currentLabel}. Continuar cria também um perfil ${opt.title} e a equipa PawCão vai rever a conta. Queres continuar?`
+      );
+      if (!proceed) return;
+    }
+    localStorage.setItem("pawcao_signup_intent", opt.type);
+    navigate(opt.route);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 px-4 pb-10 pt-6">
@@ -107,6 +149,8 @@ export default function ProfessionalTypeSelect() {
           <p className="text-slate-400 text-base font-light">Escolhe o fluxo de configuração adequado ao teu serviço.</p>
         </motion.div>
 
+        <AccountRegimeNotice account={account} />
+
         <div className="space-y-4">
           {options.map((opt, idx) => {
             const Icon = opt.icon;
@@ -116,10 +160,7 @@ export default function ProfessionalTypeSelect() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                onClick={() => {
-                  localStorage.setItem("pawcao_signup_intent", opt.type);
-                  navigate(opt.route);
-                }}
+                onClick={() => choose(opt)}
                 className={`w-full p-6 rounded-3xl border-2 text-left transition-all group relative overflow-hidden ${
                   opt.color === "orange"
                     ? "border-slate-800 bg-slate-900 hover:border-orange-500/50 hover:bg-orange-500/5"
@@ -137,7 +178,14 @@ export default function ProfessionalTypeSelect() {
                     <Icon className={`w-8 h-8 ${opt.color === "orange" ? "text-orange-400" : opt.color === "blue" ? "text-blue-400" : opt.color === "teal" ? "text-teal-400" : "text-purple-400"}`} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-white font-bold text-lg">{opt.title}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-white font-bold text-lg">{opt.title}</p>
+                      {currentRegime && opt.regimes.includes(currentRegime) && (
+                        <span className="rounded-full border border-teal-500/30 bg-teal-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-teal-300">
+                          {currentRegime === "customer" ? "Regime atual" : "A tua conta"}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-slate-400 text-sm mt-0.5">{opt.desc}</p>
                   </div>
                   <ChevronRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${

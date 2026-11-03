@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { registerOwnAccount } from "@/lib/accountRegime";
 import {
   Camera, MapPin, Phone, ChevronRight, ChevronLeft,
   CheckCircle, Upload, Plus, Trash2, User, Home, PawPrint
@@ -288,6 +289,7 @@ export default function ClientSetup() {
       queryClient.invalidateQueries(["currentUser"]);
       queryClient.invalidateQueries(["clientSetupProfile"]);
       queryClient.invalidateQueries(["dogProfiles"]);
+      await registerOwnAccount();
       toast.success("Perfil criado com sucesso! Bem-vindo à PawCão 🐾");
       navigate(createPageUrl("Home"), { replace: true });
     } catch (e) {
