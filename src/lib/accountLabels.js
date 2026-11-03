@@ -32,6 +32,24 @@ export const REVIEW_LABELS = {
   no_profile: "Sem perfil profissional",
 };
 
+export const REVIEW_ACTION_LABELS = {
+  confirmed: "Confirmado",
+  claim_corrected: "Indicação corrigida",
+  onboarding_requested: "Onboarding pedido",
+  kept_in_review: "Em revisão",
+};
+
 export const regimeMeta = (value) => REGIMES.find((r) => r.value === value) || null;
 export const countryMeta = (value) => COUNTRIES.find((c) => c.value === value) || null;
 export const statusMeta = (value) => ACCOUNT_STATUSES.find((s) => s.value === value) || null;
+
+// Valor confirmado pelo admin prevalece sobre o detetado na sincronização.
+export const effectiveRegime = (account) => account?.confirmed_regime || account?.regime || null;
+export const effectiveCountry = (account) => account?.confirmed_country || account?.country || null;
+export const isManuallyConfirmed = (account) => !!(account?.confirmed_regime || account?.confirmed_country);
+
+export const isReviewPending = (account) =>
+  !!account && account.review_resolved !== true && !!account.review_state && account.review_state !== "ok";
+
+export const isReviewResolved = (account) =>
+  !!account && account.review_resolved === true && !!account.review_state && account.review_state !== "ok";

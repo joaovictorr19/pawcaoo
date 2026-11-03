@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
-import { buildRegistryRows, normalizeEmail } from '../../shared/accountRegistry.ts';
+import { buildRegistryRows, normalizeEmail, preservedOverrides } from '../../shared/accountRegistry.ts';
 
 /**
  * Sincroniza o registo canónico de contas (regime, país, estado).
@@ -49,10 +49,18 @@ export default async function (req) {
 
     const toCreate = [];
     const toUpdate = [];
+    const pendingReview = [];
     let unchanged = 0;
+    let resolvedCount = 0;
 
     rows.forEach((row) => {
       const current = existingByEmail.get(row.user_email);
+
+      if (row.review_state !== 'ok') {
+        if (current?.review_resolved === true) resolvedCount++;
+        else pendingReview.push(row);
+      }
+
       if (!current) {
         toCreate.push(row);
         return;
@@ -61,7 +69,8 @@ export default async function (req) {
         unchanged++;
         return;
       }
-      toUpdate.push({ id: current.id, ...row });
+      // Decisões manuais do admin sobrevivem a qualquer sincronização posterior.
+      toUpdate.push({ id: current.id, ...row, ...preservedOverrides(current) });
     });
 
     const now = new Date().toISOString();
@@ -77,7 +86,7 @@ export default async function (req) {
       }
     }
 
-    const reviewRows = rows.filter((row) => row.review_state && row.review_state !== 'ok');
+    const reviewRows = pendingReview;
 
     return Response.json({
       dry_run: dryRun,
@@ -89,6 +98,7 @@ export default async function (req) {
       pending_update: toUpdate.length,
       unchanged,
       reviews: reviewRows.length,
+      reviews_resolved: resolvedCount,
       by_regime: tally(rows, 'regime'),
       by_country: tally(rows, 'country'),
       by_status: tally(rows, 'status'),

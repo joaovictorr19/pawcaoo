@@ -6,11 +6,15 @@ const selectCls =
   "h-9 rounded-xl border border-white/60 bg-white/70 px-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500/30";
 
 /**
- * Filtros por regime, país e estado, com contagens por grupo.
+ * Filtros por regime, país, estado e revisão, com contagens por grupo.
  */
 export default function AccountFiltersBar({ filters, onChange, counts }) {
   const set = (key, value) => onChange({ ...filters, [key]: value });
-  const isActive = filters.regime !== "all" || filters.country !== "all" || filters.status !== "all";
+  const isActive =
+    filters.regime !== "all" ||
+    filters.country !== "all" ||
+    filters.status !== "all" ||
+    filters.review !== "all";
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -63,10 +67,21 @@ export default function AccountFiltersBar({ filters, onChange, counts }) {
         ))}
       </select>
 
+      <select
+        aria-label="Filtrar por revisão"
+        className={selectCls}
+        value={filters.review}
+        onChange={(e) => set("review", e.target.value)}
+      >
+        <option value="all">Revisão: todas</option>
+        <option value="pending">Para rever ({counts.reviewPending || 0})</option>
+        <option value="resolved">Revisados ({counts.reviewResolved || 0})</option>
+      </select>
+
       {isActive && (
         <button
           type="button"
-          onClick={() => onChange({ regime: "all", country: "all", status: "all" })}
+          onClick={() => onChange({ regime: "all", country: "all", status: "all", review: "all" })}
           className="text-[10px] font-bold text-teal-700 underline"
         >
           Limpar

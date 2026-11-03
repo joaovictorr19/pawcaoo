@@ -34,7 +34,7 @@
         "blue",
         "yellow"
       ],
-      "description": "Regime can\u00f3nico da conta (Cliente/Passeador/Treinador/Hotel/Loja)"
+      "description": "Regime DETETADO a partir dos perfis (Cliente/Passeador/Treinador/Hotel/Loja)"
     },
     "country": {
       "type": "string",
@@ -48,7 +48,7 @@
         "yellow",
         "blue"
       ],
-      "description": "Pa\u00eds de opera\u00e7\u00e3o da conta"
+      "description": "Pa\u00eds DETETADO no perfil de opera\u00e7\u00e3o"
     },
     "status": {
       "type": "string",
@@ -85,11 +85,77 @@
         "gray"
       ],
       "default": "ok",
-      "description": "Estado de revis\u00e3o administrativa"
+      "description": "Problema detetado na origem (n\u00e3o \u00e9 apagado por decis\u00f5es manuais)"
     },
     "review_notes": {
       "type": "string",
-      "description": "Detalhe leg\u00edvel do motivo de revis\u00e3o"
+      "description": "Detalhe leg\u00edvel do problema detetado"
+    },
+    "review_resolved": {
+      "type": "boolean",
+      "default": false,
+      "description": "O admin j\u00e1 decidiu sobre este caso \u2014 a sincroniza\u00e7\u00e3o n\u00e3o volta a assinal\u00e1-lo"
+    },
+    "review_action": {
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "claim_corrected",
+        "onboarding_requested",
+        "kept_in_review"
+      ],
+      "enumColors": [
+        "green",
+        "blue",
+        "yellow",
+        "gray"
+      ],
+      "description": "A\u00e7\u00e3o administrativa aplicada ao caso de revis\u00e3o"
+    },
+    "confirmed_regime": {
+      "type": "string",
+      "enum": [
+        "customer",
+        "walker",
+        "trainer",
+        "hotel",
+        "shop"
+      ],
+      "enumColors": [
+        "gray",
+        "green",
+        "purple",
+        "blue",
+        "yellow"
+      ],
+      "description": "Regime confirmado manualmente pelo admin (prevalece sobre o detetado)"
+    },
+    "confirmed_country": {
+      "type": "string",
+      "enum": [
+        "portugal",
+        "spain",
+        "france"
+      ],
+      "enumColors": [
+        "green",
+        "yellow",
+        "blue"
+      ],
+      "description": "Pa\u00eds confirmado manualmente pelo admin (prevalece sobre o detetado)"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Notas do admin sobre a revis\u00e3o"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Admin que reviu a conta"
+    },
+    "reviewed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando a revis\u00e3o foi decidida"
     },
     "professional_types": {
       "type": "array",

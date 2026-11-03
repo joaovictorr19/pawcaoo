@@ -98,6 +98,9 @@ export default function AccountsSyncCard({ onSynced }) {
             <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3">
               <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-700">
                 <AlertTriangle className="w-3 h-3" /> Casos para revisão
+                {report.reviews_resolved > 0 && (
+                  <span className="text-emerald-700">· {report.reviews_resolved} já revistos</span>
+                )}
               </p>
               <ul className="mt-2 space-y-1">
                 {report.review_samples.map((sample) => (

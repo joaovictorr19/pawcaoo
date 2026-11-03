@@ -31,6 +31,7 @@ import AdminApprovalsModule from "../components/admin/AdminApprovalsModule";
 import AdminDebug from "./AdminDebug";
 import AdminUserTable from "../components/admin/AdminUserTable";
 import AccountsSyncCard from "@/components/admin/accounts/AccountsSyncCard";
+import AccountReviewPanel from "@/components/admin/accounts/AccountReviewPanel";
 
 import ClientDetails from "../components/admin/ClientDetails";
 
@@ -1022,6 +1023,7 @@ export default function AdminDashboard() {
             {activeTab === 'users' && (
               <>
                 <AccountsSyncCard onSynced={() => refetchAccountRegistry()} />
+                <AccountReviewPanel accounts={accountRegistry} onResolved={() => refetchAccountRegistry()} />
                 <AdminUserTable
                   users={allUsers}
                   walkers={allWalkers}

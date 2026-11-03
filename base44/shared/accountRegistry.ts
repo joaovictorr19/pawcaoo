@@ -164,6 +164,27 @@ export function signatureOf(row) {
   ].join("|");
 }
 
+/** Campos decididos manualmente pelo admin — nunca são recalculados pela sincronização. */
+export const OVERRIDE_FIELDS = [
+  "confirmed_regime",
+  "confirmed_country",
+  "admin_notes",
+  "reviewed_by",
+  "reviewed_date",
+  "review_action",
+];
+
+export function preservedOverrides(existing) {
+  const kept = {};
+  if (!existing) return kept;
+  OVERRIDE_FIELDS.forEach((key) => {
+    const value = existing[key];
+    if (value !== undefined && value !== null && value !== "") kept[key] = value;
+  });
+  if (existing.review_resolved === true) kept.review_resolved = true;
+  return kept;
+}
+
 /**
  * Consolida todas as contas: uma linha por utilizador, indexando os perfis por email.
  */

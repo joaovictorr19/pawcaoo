@@ -17,6 +17,7 @@ import { AdminQuickVerify } from "./AdminQuickVerify";
 import { AdminUserCard } from "./AdminUserCard";
 import AccountBadges from "./accounts/AccountBadges";
 import AccountFiltersBar from "./accounts/AccountFiltersBar";
+import { effectiveRegime, effectiveCountry, isReviewPending, isReviewResolved } from "@/lib/accountLabels";
 import { AdminUserDrawer } from "./AdminUserDrawer";
 import { base44 } from "@/api/base44Client";
 import { dedupeUsers, deriveDisplayName, isDerivedName, normalizeEmail } from "@/utils/adminUserList";
@@ -40,7 +41,7 @@ export default function AdminUserTable({
   const { language } = useLanguage();
   const [userSearchState, setUserSearchState] = useState({ searchTerm: "", filters: {} });
   const [quickFilter, setQuickFilter] = useState('all');
-  const [accountFilters, setAccountFilters] = useState({ regime: 'all', country: 'all', status: 'all' });
+  const [accountFilters, setAccountFilters] = useState({ regime: 'all', country: 'all', status: 'all', review: 'all' });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -135,17 +136,21 @@ export default function AdminUserTable({
     const regimes = {};
     const countries = {};
     const statuses = {};
-    let synced = 0, unsynced = 0, missingCountry = 0;
+    let synced = 0, unsynced = 0, missingCountry = 0, reviewPending = 0, reviewResolved = 0;
     normalizedUsers.forEach(u => {
       const acc = accountMap[normalizeEmail(u.email)];
       if (!acc) { unsynced++; return; }
       synced++;
-      if (acc.regime) regimes[acc.regime] = (regimes[acc.regime] || 0) + 1;
-      if (acc.country) countries[acc.country] = (countries[acc.country] || 0) + 1;
+      const regime = effectiveRegime(acc);
+      const country = effectiveCountry(acc);
+      if (regime) regimes[regime] = (regimes[regime] || 0) + 1;
+      if (country) countries[country] = (countries[country] || 0) + 1;
       else missingCountry++;
       if (acc.status) statuses[acc.status] = (statuses[acc.status] || 0) + 1;
+      if (isReviewPending(acc)) reviewPending++;
+      if (isReviewResolved(acc)) reviewResolved++;
     });
-    return { regimes, countries, statuses, synced, unsynced, missingCountry };
+    return { regimes, countries, statuses, synced, unsynced, missingCountry, reviewPending, reviewResolved };
   }, [normalizedUsers, accountMap]);
 
   const filteredUsers = useMemo(() => {
@@ -153,7 +158,8 @@ export default function AdminUserTable({
     const { searchTerm, filters } = userSearchState;
     const searchLower = searchTerm?.toLowerCase().trim() || "";
     const noAccountFilter =
-      accountFilters.regime === 'all' && accountFilters.country === 'all' && accountFilters.status === 'all';
+      accountFilters.regime === 'all' && accountFilters.country === 'all' &&
+      accountFilters.status === 'all' && accountFilters.review === 'all';
     if (!searchLower && (!filters || Object.keys(filters).length === 0) && quickFilter === 'all' && noAccountFilter) {
       return normalizedUsers;
     }
@@ -180,14 +186,16 @@ export default function AdminUserTable({
       if (accountFilters.regime !== 'all') {
         if (accountFilters.regime === 'undefined') {
           if (account) return false;
-        } else if (account?.regime !== accountFilters.regime) return false;
+        } else if (effectiveRegime(account) !== accountFilters.regime) return false;
       }
       if (accountFilters.country !== 'all') {
         if (accountFilters.country === 'undefined') {
-          if (account?.country) return false;
-        } else if (account?.country !== accountFilters.country) return false;
+          if (effectiveCountry(account)) return false;
+        } else if (effectiveCountry(account) !== accountFilters.country) return false;
       }
       if (accountFilters.status !== 'all' && account?.status !== accountFilters.status) return false;
+      if (accountFilters.review === 'pending' && !isReviewPending(account)) return false;
+      if (accountFilters.review === 'resolved' && !isReviewResolved(account)) return false;
       if (quickFilter === 'professionals') return isProfessional;
       if (quickFilter === 'pending') return isProfessional && !isActive;
       if (quickFilter === 'active') return isProfessional && isActive;
