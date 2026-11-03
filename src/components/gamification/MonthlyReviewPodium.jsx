@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import PodiumPedestal from "@/components/gamification/PodiumPedestal";
 import { buildMonthlyPodium, getLisbonMonthRange, splitCountdown } from "@/lib/reviewPodium";
+import "./monthlyReviewPodium.css";
 
 const COPY = {
   pt: {
@@ -225,7 +226,7 @@ export default function MonthlyReviewPodium() {
       )}
 
       <Dialog open={rulesOpen} onOpenChange={setRulesOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto border border-amber-500/25 bg-neutral-950 text-white sm:rounded-3xl">
+        <DialogContent className="podium-rules-dialog max-h-[85vh] overflow-y-auto sm:rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-black text-amber-400">{copy.rulesTitle}</DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-gray-400">
