@@ -153,20 +153,17 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-[15px] text-slate-900 leading-tight">{service.service_name}</h4>
-                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wide">
-                      {config.label}
-                    </p>
-                    {promotion && <PromotionBadge promotion={promotion} />}
-                  </div>
+                  <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wide mt-0.5">
+                    {config.label}
+                  </p>
                 </div>
               </div>
 
-              {/* Detalhe da promoção */}
-              {promotion && (promotion.free_extra || promotion.description) && (
-                <p className="text-[11px] font-semibold text-teal-700 -mt-2">
-                  {promotion.free_extra || promotion.description}
-                </p>
+              {/* Promoção do serviço */}
+              {promotion && <PromotionBadge promotion={promotion} className="-mt-1" />}
+
+              {promotion?.description && (
+                <p className="text-[11px] text-slate-500 leading-snug -mt-2">{promotion.description}</p>
               )}
 
               {/* Description */}

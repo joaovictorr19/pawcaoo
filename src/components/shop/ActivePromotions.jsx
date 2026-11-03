@@ -1,13 +1,14 @@
 import React, { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Sparkles, Megaphone, Truck, Zap, Clock } from "lucide-react";
+import { Megaphone, Sparkles, Truck, Clock } from "lucide-react";
 import UrgencyCountdown from "@/components/promotions/UrgencyCountdown";
 import {
   discountLabel,
   freePickupState,
   getPromotionStatus,
   promoScopeLabel,
+  promotionEndsAt,
   vacanciesLeft,
 } from "@/lib/promotions";
 
@@ -45,95 +46,89 @@ export default function ActivePromotions() {
           const left = vacanciesLeft(promo);
           const pickup = freePickupState(promo);
           const soldOut = left === 0;
+          const hasEnd = !!promotionEndsAt(promo);
+          const extra = promo.free_extra || null;
+          const lowStock = left !== null && !soldOut && left <= 3;
+
           return (
             <div
               key={promo.id}
-              className="snap-start shrink-0 w-[280px] rounded-3xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-3.5"
+              className="snap-start shrink-0 w-[300px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_2px_14px_rgba(15,23,42,0.05)]"
             >
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wide text-teal-700">
-                  {promo.partner_name || "Parceiro PawCão"}
-                </span>
-                {discount && (
-                  <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 text-white shrink-0 shadow-sm">
-                    {discount}
+              <div className="px-4 pt-3.5 pb-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate text-[10px] font-bold uppercase tracking-[0.14em] text-teal-700">
+                    {promo.partner_name || "Parceiro PawCão"}
                   </span>
-                )}
-              </div>
-              <p className="font-heading font-extrabold text-[15px] text-slate-900 leading-tight mt-1.5">
-                {promo.title}
-              </p>
-              <p className="text-[11px] text-slate-500 mt-0.5 truncate">{promoScopeLabel(promo)}</p>
+                  {discount && (
+                    <span className="shrink-0 rounded-md bg-slate-900 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
+                      {discount}
+                    </span>
+                  )}
+                </div>
 
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                <span className="text-[10px] font-black uppercase tracking-[0.08em] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white flex items-center gap-1 shadow-[0_2px_10px_rgba(249,115,22,0.3)]">
-                  <Zap className="w-3 h-3" />
-                  Relâmpago
-                </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-rose-700 border border-rose-200 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <UrgencyCountdown promotion={promo} />
-                </span>
-                {promo.free_extra && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-teal-800 border border-teal-200 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    {promo.free_extra}
-                  </span>
-                )}
-                {pickup && (
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
-                      pickup.exhausted
-                        ? "bg-rose-50 text-rose-700 border-rose-200"
-                        : "bg-white text-emerald-700 border-emerald-200"
-                    }`}
-                  >
-                    <Truck className="w-3 h-3" />
-                    {pickup.exhausted
-                      ? "Recolha grátis esgotada"
-                      : pickup.unlimited
-                      ? "Recolha grátis"
-                      : `Recolha grátis · ${pickup.left} restantes`}
-                  </span>
-                )}
-                {left !== null && (
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                      soldOut
-                        ? "bg-rose-50 text-rose-700 border-rose-200"
-                        : left <= 3
-                        ? "bg-rose-600 text-white border-rose-600"
-                        : "bg-white text-slate-700 border-slate-200"
-                    }`}
-                  >
-                    {soldOut ? "Esgotada" : left <= 3 ? `Últimas ${left} vagas` : `${left} vagas restantes`}
-                  </span>
-                )}
-              </div>
-
-              {promo.description && (
-                <p className="text-[11px] text-slate-600 mt-2 line-clamp-2">{promo.description}</p>
-              )}
-
-              <div
-                className={`mt-3 w-full rounded-xl px-2.5 py-2 text-center border ${
-                  soldOut
-                    ? "bg-slate-50 border-slate-200"
-                    : "bg-teal-600 border-teal-600"
-                }`}
-              >
-                <p
-                  className={`text-[11px] font-bold flex items-center justify-center gap-1.5 ${
-                    soldOut ? "text-slate-400" : "text-white"
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  {soldOut ? "Vagas esgotadas" : "Desconto aplicado ao finalizar"}
+                <p className="mt-1.5 font-heading text-[15px] font-extrabold leading-tight text-slate-900">
+                  {promo.title}
                 </p>
-                <p className={`text-[10px] mt-0.5 leading-snug ${soldOut ? "text-slate-400" : "text-teal-50"}`}>
+                <p className="mt-0.5 truncate text-[11px] text-slate-500">{promoScopeLabel(promo)}</p>
+
+                {(extra || pickup) && (
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {extra && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-800">
+                        <Sparkles className="h-3 w-3" />
+                        {extra}
+                      </span>
+                    )}
+                    {pickup && (
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+                          pickup.exhausted
+                            ? "border-slate-200 bg-slate-50 text-slate-400 line-through"
+                            : "border-teal-200 bg-teal-50 text-teal-800"
+                        }`}
+                      >
+                        <Truck className="h-3 w-3" />
+                        Recolha grátis
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {(hasEnd || left !== null) && (
+                  <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-slate-500">
+                    {hasEnd && (
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="h-3 w-3 shrink-0 text-slate-400" />
+                        <UrgencyCountdown promotion={promo} />
+                      </span>
+                    )}
+                    {hasEnd && left !== null && <span className="h-1 w-1 rounded-full bg-slate-300" />}
+                    {left !== null && (
+                      <span className={soldOut ? "font-semibold text-slate-400" : lowStock ? "font-semibold text-rose-600" : undefined}>
+                        {soldOut
+                          ? "Esgotada"
+                          : lowStock
+                          ? `Últimas ${left} vagas`
+                          : `${left} vagas restantes`}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {promo.description && (
+                  <p className="mt-2 line-clamp-2 text-[11px] leading-snug text-slate-500">
+                    {promo.description}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5 border-t border-slate-100 bg-slate-50/80 px-4 py-2">
+                <Sparkles className={`h-3 w-3 shrink-0 ${soldOut ? "text-slate-300" : "text-teal-600"}`} />
+                <p className={`text-[10px] leading-tight ${soldOut ? "text-slate-400" : "text-slate-500"}`}>
                   {soldOut
-                    ? "Esta promoção já atingiu o limite de participantes."
-                    : "Só conta como participação quando a compra ou reserva é confirmada."}
+                    ? "Esta promoção atingiu o limite de participantes"
+                    : "Aplicado automaticamente ao finalizar"}
                 </p>
               </div>
             </div>

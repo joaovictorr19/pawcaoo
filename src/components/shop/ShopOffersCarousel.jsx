@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Flame, Clock, Users, ChevronLeft, ChevronRight, MapPin, Tag } from "lucide-react";
+import { Clock, Users, ChevronLeft, ChevronRight, MapPin, Tag } from "lucide-react";
 
 function timeLeft(expiresAt) {
   const ms = new Date(expiresAt).getTime() - Date.now();
@@ -72,8 +72,8 @@ export default function ShopOffersCarousel() {
   return (
     <div className="relative mb-6">
       <div className="flex items-center gap-2 mb-2.5">
-        <Flame className="w-4 h-4 text-orange-500" />
-        <span className="text-xs font-black text-orange-600 uppercase tracking-wide">Ofertas Relâmpago</span>
+        <Tag className="w-4 h-4 text-teal-600" />
+        <span className="font-heading text-base font-extrabold text-slate-900">Ofertas em destaque</span>
       </div>
 
       <div className="relative rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
@@ -135,19 +135,19 @@ export default function ShopOffersCarousel() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span
-                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold ${
+                    className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
                       current.slots_available <= 3
-                        ? "bg-rose-600 text-white shadow-[0_2px_10px_rgba(225,29,72,0.3)]"
-                        : "bg-orange-50 text-orange-700"
+                        ? "border-rose-200 bg-rose-50 text-rose-700"
+                        : "border-slate-200 bg-slate-50 text-slate-600"
                     }`}
                   >
                     <Users className="w-3 h-3" />
                     {current.slots_available <= 3
                       ? `Últimas ${current.slots_available} vagas`
-                      : `${current.slots_available}/${current.slots_total} vagas`}
+                      : `${current.slots_available} vagas`}
                   </span>
                   {remaining && (
-                    <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[11px] font-bold tabular-nums shadow-[0_2px_10px_rgba(249,115,22,0.3)]">
+                    <span className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-slate-600">
                       <Clock className="w-3 h-3" />
                       Termina em {remaining}
                     </span>

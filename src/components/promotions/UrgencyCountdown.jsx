@@ -7,13 +7,13 @@ function formatLeft(ms) {
   const h = Math.floor((total % 86400) / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
-  if (d > 0) return `termina em ${d}d ${String(h).padStart(2, "0")}h`;
-  if (h > 0) return `termina em ${h}h ${String(m).padStart(2, "0")}m`;
-  return `termina em ${m}m ${String(s).padStart(2, "0")}s`;
+  if (d > 0) return `Termina em ${d}d ${String(h).padStart(2, "0")}h`;
+  if (h > 0) return `Termina em ${h}h ${String(m).padStart(2, "0")}m`;
+  return `Termina em ${m}m ${String(s).padStart(2, "0")}s`;
 }
 
 // Contagem real até ao fim da promoção. Sem fim configurado, não inventa prazo.
-export default function UrgencyCountdown({ promotion, fallback = "tempo limitado", className = "" }) {
+export default function UrgencyCountdown({ promotion, fallback = "Tempo limitado", className = "" }) {
   const endsAt = promotionEndsAt(promotion);
   const [now, setNow] = useState(() => Date.now());
 

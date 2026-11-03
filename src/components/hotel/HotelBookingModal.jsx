@@ -1028,10 +1028,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       {promoFreeTransport && transportRequested && (
                         <div className="flex justify-between text-xs">
                           <span className="text-teal-700 font-semibold flex items-center gap-1">
-                            <Truck className="w-3 h-3" /> Transporte grátis · relâmpago
-                            {promoPickup && !promoPickup.unlimited
-                              ? ` · ${promoPickup.left} restantes`
-                              : ""}
+                            <Truck className="w-3 h-3" /> Transporte grátis (promoção)
                           </span>
                           <span className="font-bold text-teal-700">0€</span>
                         </div>
