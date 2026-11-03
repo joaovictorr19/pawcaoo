@@ -1,0 +1,66 @@
+{
+  "name": "MonthlyStagePrize",
+  "type": "object",
+  "properties": {
+    "month_key": {
+      "type": "string",
+      "description": "M\u00eas a que os pr\u00e9mios pertencem, no formato AAAA-MM (fuso Europe/Lisbon)"
+    },
+    "month_label": {
+      "type": "string",
+      "description": "Nome leg\u00edvel do m\u00eas (ex: Novembro 2026)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se desativado, as etapas n\u00e3o apresentam pr\u00e9mio na p\u00e1gina O Legado"
+    },
+    "stages": {
+      "type": "array",
+      "description": "Os quatro pr\u00e9mios mensais, um por etapa",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "position": {
+            "type": "number",
+            "description": "Etapa (1 a 4)"
+          },
+          "title": {
+            "type": "string",
+            "description": "Nome do pr\u00e9mio"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descri\u00e7\u00e3o curta do pr\u00e9mio"
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Imagem do pr\u00e9mio"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "month_key"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

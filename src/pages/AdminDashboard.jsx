@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import AdminModuleNavigation from "@/components/admin/AdminModuleNavigation";
+import AdminLegacyPrizes from "@/components/admin/AdminLegacyPrizes";
 import AdminStatCard from "@/components/admin/AdminStatCard";
 import {
   Dialog,
@@ -1269,6 +1270,14 @@ export default function AdminDashboard() {
             {activeTab === 'selos' && (
               <div className="mt-6">
                 <AdminSealsManager />
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="premios">
+            {activeTab === 'premios' && (
+              <div className="mt-6">
+                <AdminLegacyPrizes />
               </div>
             )}
           </TabsContent>

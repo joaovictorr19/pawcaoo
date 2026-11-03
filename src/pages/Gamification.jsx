@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Crown, Star, Zap, Trophy, Target, ShoppingBag, Moon, Footprints, Heart, Shield, Sparkles, ChevronLeft, ChevronRight, Wallet, PartyPopper, ArrowDown, ArrowUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import WeeklyDuelsPanel from "@/components/gamification/WeeklyDuelsPanel";
+import LegacyStageProgress from "@/components/gamification/LegacyStageProgress";
 import MonthlyReviewPodium from "@/components/gamification/MonthlyReviewPodium";
 import { createPageUrl } from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -683,40 +684,7 @@ export default function Gamification() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
             >
-              <div className="relative h-14 md:h-16 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden shadow-2xl shadow-orange-500/20">
-                <motion.div
-                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-700 via-orange-500 to-amber-400"
-                  style={{ width: `${progressInLevel}%` }}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressInLevel}%` }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-red-600/80 via-orange-400/50 to-yellow-300/30"
-                    animate={{ opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                  />
-                  <motion.div
-                    className="absolute left-8 top-1/2 -translate-y-1/2 w-2 h-2 bg-yellow-300 rounded-full"
-                    animate={{ x: [-5, 15, -5], opacity: [1, 0, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  <motion.div
-                    className="absolute right-8 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-yellow-200 rounded-full"
-                    animate={{ x: [-5, 20, -5], opacity: [1, 0, 1] }}
-                    transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
-                  />
-                </motion.div>
-
-                {[25, 50, 75].map((mark) => (
-                  <div
-                    key={mark}
-                    className="absolute top-0 bottom-0 w-0.5 bg-amber-500/20"
-                    style={{ left: `${mark}%` }}
-                  />
-                ))}
-
-              </div>
+              <LegacyStageProgress progress={progressInLevel} />
             </motion.div>
 
             <motion.div

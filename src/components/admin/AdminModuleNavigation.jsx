@@ -1,6 +1,6 @@
 import React from "react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutDashboard, Globe2, CalendarDays, BadgeCheck, Users, Zap, Trophy, PawPrint, ShieldAlert, Bug, WalletCards, ClipboardCheck, Gift, Award, ShoppingBag } from "lucide-react";
+import { LayoutDashboard, Globe2, CalendarDays, BadgeCheck, Users, Zap, Trophy, PawPrint, ShieldAlert, Bug, WalletCards, ClipboardCheck, Gift, Award, ShoppingBag, Sparkles } from "lucide-react";
 
 const modules = [
   ["overview", "Visão Geral", LayoutDashboard], ["godmode", "Análises", Globe2],
@@ -10,6 +10,7 @@ const modules = [
   ["gamification", "Gamificação", Trophy], ["professionals", "Profissionais", PawPrint],
   ["mimos", "Mimos", Gift],
   ["selos", "Selos", Award],
+  ["premios", "Prémios", Sparkles],
   ["profileModeration", "Perfis", ClipboardCheck],
   ["moderation", "Moderação", ShieldAlert], ["debug", "Diagnóstico", Bug],
   ["financeiro", "Financeiro", WalletCards],
