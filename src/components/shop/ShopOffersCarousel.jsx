@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Clock, Users, ChevronLeft, ChevronRight, MapPin, Tag } from "lucide-react";
+import { Clock, Users, ChevronLeft, ChevronRight, MapPin, Tag, ArrowRight } from "lucide-react";
+import { resolvePartnerProfileLink } from "@/lib/partnerProfileLink";
 
 function timeLeft(expiresAt) {
   const ms = new Date(expiresAt).getTime() - Date.now();
@@ -65,8 +66,9 @@ export default function ShopOffersCarousel() {
       ? Math.round(((current.original_price - current.offer_price) / current.original_price) * 100)
       : 0);
 
-  const goToProfile = () => {
-    if (current.professional_profile_id) navigate(`/${current.professional_profile_id}`);
+  const goToProfile = async () => {
+    const link = await resolvePartnerProfileLink(current.professional_profile_id);
+    if (link) navigate(link);
   };
 
   return (
@@ -122,7 +124,7 @@ export default function ShopOffersCarousel() {
                 )}
               </div>
 
-              <div className="flex items-end justify-between gap-3 mt-3">
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
                   {current.original_price > current.offer_price && (
                     <span className="text-xs text-slate-400 line-through mr-1.5">
@@ -154,6 +156,15 @@ export default function ShopOffersCarousel() {
                   )}
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={goToProfile}
+                className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-full bg-black px-4 py-2.5 text-[13px] font-bold text-white transition-all hover:bg-slate-800 active:scale-[0.99]"
+              >
+                Reservar agora
+                <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
           </motion.div>
         </AnimatePresence>

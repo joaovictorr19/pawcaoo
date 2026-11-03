@@ -1,8 +1,10 @@
 import React, { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Megaphone, Sparkles, Truck, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Megaphone, Sparkles, Truck, Clock, ArrowRight } from "lucide-react";
 import UrgencyCountdown from "@/components/promotions/UrgencyCountdown";
+import { resolvePartnerProfileLink } from "@/lib/partnerProfileLink";
 import {
   discountLabel,
   freePickupState,
@@ -13,6 +15,13 @@ import {
 } from "@/lib/promotions";
 
 export default function ActivePromotions() {
+  const navigate = useNavigate();
+
+  const openPartner = async (promo) => {
+    const link = await resolvePartnerProfileLink(promo.partner_id);
+    if (link) navigate(link);
+  };
+
   const { data: promotions = [], isLoading } = useQuery({
     queryKey: ["shopPromotions"],
     queryFn: () =>
@@ -123,14 +132,19 @@ export default function ActivePromotions() {
                 )}
               </div>
 
-              <div className="flex items-center gap-1.5 border-t border-slate-100 bg-slate-50/80 px-4 py-2">
-                <Sparkles className={`h-3 w-3 shrink-0 ${soldOut ? "text-slate-300" : "text-teal-600"}`} />
-                <p className={`text-[10px] leading-tight ${soldOut ? "text-slate-400" : "text-slate-500"}`}>
-                  {soldOut
-                    ? "Esta promoção atingiu o limite de participantes"
-                    : "Aplicado automaticamente ao finalizar"}
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={() => openPartner(promo)}
+                className="flex w-full items-center justify-between gap-2 border-t border-slate-100 bg-white px-4 py-2.5 text-left transition-colors hover:bg-slate-50"
+              >
+                <span className={`text-[10px] leading-tight ${soldOut ? "text-slate-400" : "text-slate-500"}`}>
+                  {soldOut ? "Limite de participantes atingido" : "Aplicado automaticamente no pagamento"}
+                </span>
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-teal-600 px-3 py-1.5 text-[11px] font-bold leading-none text-white">
+                  {soldOut ? "Ver serviço" : "Reservar"}
+                  <ArrowRight className="h-3 w-3" />
+                </span>
+              </button>
             </div>
           );
         })}
