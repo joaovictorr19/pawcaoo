@@ -11,7 +11,6 @@ export async function ensureBookingChat(booking) {
   }
 
   try {
-    console.log('🔍 Verificando chat para booking:', booking.id);
 
     // Buscar conversa existente
     const existing = await base44.entities.ChatConversation.filter({ 
@@ -19,7 +18,6 @@ export async function ensureBookingChat(booking) {
     });
 
     if (existing && existing.length > 0) {
-      console.log('✅ Chat existente:', existing[0].id);
       return existing[0];
     }
 
@@ -33,7 +31,6 @@ export async function ensureBookingChat(booking) {
       throw new Error('Participantes insuficientes para criar chat');
     }
 
-    console.log('💬 Criando novo chat com participantes:', participants);
 
     const conversation = await base44.entities.ChatConversation.create({
       participants,
@@ -44,7 +41,6 @@ export async function ensureBookingChat(booking) {
       unread_counts: participants.reduce((acc, p) => ({ ...acc, [p]: 0 }), {})
     });
 
-    console.log('✅ Chat criado com sucesso:', conversation.id);
     return conversation;
 
   } catch (error) {

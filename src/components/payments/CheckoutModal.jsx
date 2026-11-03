@@ -46,7 +46,6 @@ export default function CheckoutModal({
 
   const handleStripeCheckout = async () => {
     setProcessing(true);
-    console.log('🔵 Iniciando checkout Stripe...');
 
     try {
       // Se houver voucher aplicado, marcar como usado
@@ -56,11 +55,6 @@ export default function CheckoutModal({
         });
       }
 
-      console.log('📦 Payload:', {
-        bookingId: booking.id,
-        voucherCode: appliedVoucher?.redemption_code,
-        discountAmount: appliedVoucher?.euro_value || 0,
-      });
 
       const response = await base44.functions.invoke('createStripeCheckout', {
         bookingId: booking.id,
@@ -70,17 +64,10 @@ export default function CheckoutModal({
         cancelUrl: `${window.location.origin}${createPageUrl('MyBookings')}`,
       });
 
-      console.log('✅ Resposta do backend:', response);
-      console.log('📊 Response structure:', {
-        hasData: !!response?.data,
-        dataKeys: response?.data ? Object.keys(response.data) : [],
-        fullResponse: response
-      });
 
       const checkoutUrl = response?.data?.url;
 
       if (checkoutUrl) {
-        console.log('🔗 Redirecionando para Stripe:', checkoutUrl);
         
         // Add timeout warning
         const timeoutId = setTimeout(() => {

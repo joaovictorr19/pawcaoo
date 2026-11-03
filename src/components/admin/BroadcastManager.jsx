@@ -65,7 +65,6 @@ export default function BroadcastManager() {
         throw new Error("Nenhum destinatário selecionado");
       }
 
-      console.log(`📢 Enviando para ${recipients.length} utilizadores:`, recipients);
 
       const notifications = recipients.map(email => ({
         recipient_email: email,
@@ -88,7 +87,6 @@ export default function BroadcastManager() {
           batch.map(notif => base44.entities.SystemNotification.create(notif))
         );
         created += batch.length;
-        console.log(`✅ Criadas ${created}/${notifications.length} notificações`);
       }
 
       return { count: notifications.length, immediate };

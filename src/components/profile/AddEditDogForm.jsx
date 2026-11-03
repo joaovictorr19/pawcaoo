@@ -141,16 +141,13 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
         default_pickup_address: data.default_pickup_address || ''
       };
 
-      console.log('💾 Saving dog payload:', payload);
 
       try {
         if (dog?.id) {
           const result = await base44.entities.DogProfile.update(dog.id, payload);
-          console.log('✅ Dog updated successfully:', result);
           return result;
         } else {
           const result = await base44.entities.DogProfile.create(payload);
-          console.log('✅ Dog created successfully:', result);
           return result;
         }
       } catch (error) {

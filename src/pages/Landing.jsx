@@ -22,7 +22,6 @@ export default function Landing() {
   useEffect(() => {
     if (isError) {
       // Silently handle auth check errors (usually just means not logged in or network issue)
-      console.log("Auth check failed - user likely not logged in");
     }
   }, [isError]);
 

@@ -95,7 +95,6 @@ export default function PushNotificationManager({ user }) {
             await base44.entities.UserProfile.update(profiles[0].id, {
               push_subscription: subscription.toJSON()
             });
-            console.log('✅ Push subscription salva no perfil');
           }
         } catch (pushError) {
           console.error('Erro ao configurar push:', pushError);
@@ -120,7 +119,6 @@ export default function PushNotificationManager({ user }) {
           // Fechar automaticamente após 4 segundos
           setTimeout(() => notification.close(), 4000);
         } catch (notifError) {
-          console.log('Notification created but may not display:', notifError);
           // Não mostrar erro ao usuário, pois a permissão foi concedida
         }
       } else if (result === 'denied') {

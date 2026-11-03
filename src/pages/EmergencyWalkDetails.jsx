@@ -109,7 +109,6 @@ export default function EmergencyWalkDetails() {
 
   const handleAcceptWalk = async () => {
     if (isAccepting || acceptWalkMutation.isPending) {
-      console.log('⚠️ Already accepting, blocking duplicate');
       return;
     }
     

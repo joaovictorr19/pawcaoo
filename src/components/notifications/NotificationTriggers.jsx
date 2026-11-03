@@ -87,7 +87,6 @@ export default function NotificationTriggers({ user }) {
                 action_url: `/MyBookings?review=${booking.id}`
               });
               
-              console.log('📧 Lembrete de review enviado:', booking.id);
             }
           } catch (error) {
             console.error('Erro ao criar lembrete:', error);
