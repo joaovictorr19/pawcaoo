@@ -98,7 +98,7 @@ export default function AdminLegacyPrizes() {
               <Gift className="h-5 w-5 text-amber-500" /> Prémios mensais das etapas
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              Cada etapa fica conquistada ao atingir 25%, 50%, 75% e 100% do progresso do nível, na página O Legado.
+              Cada etapa fica conquistada ao atingir 5, 10, 20 e 40 pontos no mês (reservas concluídas + 1 ponto por review), na página O Legado.
             </p>
           </div>
 
@@ -144,7 +144,7 @@ export default function AdminLegacyPrizes() {
               <div className="flex items-center justify-between">
                 <p className="text-sm font-black text-slate-900">Etapa {stage.position}</p>
                 <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700">
-                  {stageThreshold(stage.position)}% do nível
+                  {stageThreshold(stage.position)} pontos
                 </span>
               </div>
 

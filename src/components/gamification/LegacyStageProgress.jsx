@@ -1,15 +1,14 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Gift, Lock } from "lucide-react";
+import { Gift, Lock, Check } from "lucide-react";
 import { STAGE_COUNT, getMonthKey, getMonthLabel, buildStages } from "@/lib/stagePrizes";
 
 /**
  * Barra de progresso do Legado dividida em quatro etapas.
- * Cada etapa apresenta o prémio mensal configurado no painel de administração
- * e fica conquistada quando o progresso do nível chega à respetiva meta.
+ * O progresso vem das reservas concluídas no mês e das reviews escritas.
  */
-export default function LegacyStageProgress({ progress = 0 }) {
+export default function LegacyStageProgress({ points = 0, bookings = 0, reviews = 0 }) {
   const monthKey = getMonthKey();
 
   const { data: config = null } = useQuery({
@@ -22,7 +21,7 @@ export default function LegacyStageProgress({ progress = 0 }) {
     refetchOnWindowFocus: false,
   });
 
-  const value = Math.min(100, Math.max(0, Number(progress) || 0));
+  const value = Number(points) || 0;
   const stages = buildStages(config, value);
   const unlockedCount = stages.filter((stage) => stage.unlocked).length;
 
@@ -44,6 +43,10 @@ export default function LegacyStageProgress({ progress = 0 }) {
           const fill = stage.unlocked
             ? 100
             : Math.min(100, Math.max(0, ((value - previousThreshold) / span) * 100));
+          const currentInStage = Math.max(
+            0,
+            Math.min(span, value - previousThreshold)
+          );
 
           return (
             <div
@@ -87,15 +90,36 @@ export default function LegacyStageProgress({ progress = 0 }) {
                 {stage.title}
               </p>
               <span
-                className={`mt-0.5 text-[9px] font-semibold uppercase tracking-wide ${
-                  stage.unlocked ? "text-amber-500/70" : "text-neutral-600"
+                className={`mt-0.5 flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wide ${
+                  stage.unlocked ? "text-amber-500/80" : "text-neutral-600"
                 }`}
               >
-                {stage.unlocked ? "Conquistado" : `${Math.round(stage.threshold)}%`}
+                {stage.unlocked && <Check className="h-2.5 w-2.5" />}
+                {stage.unlocked ? "Conquistado" : `${currentInStage}/${span}`}
               </span>
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-4 space-y-1.5 rounded-2xl border border-amber-500/20 bg-black/40 px-3.5 py-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-500/70">
+          Como funciona
+        </p>
+        <p className="text-[11px] leading-relaxed text-neutral-300">
+          Contam as reservas <span className="font-bold text-amber-300">concluídas neste mês</span> —
+          passeios, treinos, hotel e serviços.
+        </p>
+        <p className="text-[11px] leading-relaxed text-neutral-300">
+          Cada <span className="font-bold text-amber-300">review escrita vale 1 ponto</span> e soma ao
+          progresso.
+        </p>
+        <p className="text-[11px] leading-relaxed text-neutral-300">
+          Metas das etapas: <span className="font-bold text-amber-300">5 → 10 → 20 → 40</span> pontos.
+        </p>
+        <p className="pt-1 text-[11px] font-semibold text-amber-400/90">
+          {bookings} reservas + {reviews} reviews = {value} pontos este mês
+        </p>
       </div>
     </div>
   );

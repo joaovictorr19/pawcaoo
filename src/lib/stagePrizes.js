@@ -2,6 +2,12 @@ const TIME_ZONE = "Europe/Lisbon";
 export const STAGE_COUNT = 4;
 export const STAGE_POSITIONS = [1, 2, 3, 4];
 
+/** Reservas concluídas necessárias para conquistar cada etapa. */
+export const STAGE_TARGETS = [5, 10, 20, 40];
+
+/** Cada review escrita vale um ponto de progresso. */
+export const REVIEW_POINTS = 1;
+
 const MONTH_NAMES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
@@ -26,14 +32,14 @@ export function getMonthLabel(monthKey) {
   return name ? `${name} ${year}` : "deste mês";
 }
 
-/** Percentagem do progresso do nível em que a etapa é conquistada. */
+/** Reservas concluídas necessárias para a etapa. */
 export function stageThreshold(position) {
-  return (100 / STAGE_COUNT) * position;
+  return STAGE_TARGETS[position - 1] ?? STAGE_TARGETS[STAGE_TARGETS.length - 1];
 }
 
 /** As quatro etapas, com o prémio configurado e o estado de conquista. */
-export function buildStages(config, progress) {
-  const value = Number(progress) || 0;
+export function buildStages(config, points) {
+  const value = Number(points) || 0;
   const configured = Array.isArray(config?.stages) ? config.stages : [];
   const active = config?.is_active !== false;
 

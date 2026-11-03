@@ -7,6 +7,8 @@ import { Flame, Crown, Star, Zap, Trophy, Target, ShoppingBag, Moon, Footprints,
 import { Link } from "react-router-dom";
 import WeeklyDuelsPanel from "@/components/gamification/WeeklyDuelsPanel";
 import LegacyStageProgress from "@/components/gamification/LegacyStageProgress";
+import { fetchLegacyProgress } from "@/lib/legacyProgress";
+import { getMonthKey } from "@/lib/stagePrizes";
 import MonthlyReviewPodium from "@/components/gamification/MonthlyReviewPodium";
 import { createPageUrl } from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -372,6 +374,16 @@ export default function Gamification() {
     refetchOnWindowFocus: false,
   });
 
+  const monthKey = getMonthKey();
+
+  const { data: legacyProgress = { bookings: 0, reviews: 0, points: 0 } } = useQuery({
+    queryKey: ['legacyProgress', user?.email, monthKey],
+    queryFn: () => fetchLegacyProgress(user?.email, monthKey),
+    enabled: !!user?.email,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsersRanking'],
     queryFn: async () => {
@@ -684,7 +696,11 @@ export default function Gamification() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
             >
-              <LegacyStageProgress progress={progressInLevel} />
+              <LegacyStageProgress
+                points={legacyProgress.points}
+                bookings={legacyProgress.bookings}
+                reviews={legacyProgress.reviews}
+              />
             </motion.div>
 
             <motion.div
