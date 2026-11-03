@@ -148,7 +148,7 @@ function LayoutContent({ children, currentPageName }) {
               userData.gamification_xp = profiles[0].gamification_xp || 0;
               userData.gamification_level = profiles[0].gamification_level || 1;
             }
-          } catch (e) {}
+          } catch (e) { /* intentionally ignored */ }
         }
 
         return userData;

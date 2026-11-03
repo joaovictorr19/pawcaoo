@@ -140,11 +140,11 @@ export default function NotificationManager() {
       try {
         await base44.entities.Booking.update(notif.action_data.booking_id, { status: 'confirmed' });
         navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${notif.action_data.booking_id}`));
-      } catch {}
+      } catch { /* intentionally ignored */ }
     } else if (action === 'decline' && notif.action_data?.booking_id) {
       try {
         await base44.entities.Booking.update(notif.action_data.booking_id, { status: 'rejected' });
-      } catch {}
+      } catch { /* intentionally ignored */ }
     }
   };
 

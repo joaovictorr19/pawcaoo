@@ -56,7 +56,7 @@ export default function ClientSetup() {
     try {
       const saved = localStorage.getItem("client_setup_form");
       if (saved) return JSON.parse(saved);
-    } catch (e) {}
+    } catch (e) { /* intentionally ignored */ }
     return {
       full_name: "",
       phone: "",
@@ -118,7 +118,7 @@ export default function ClientSetup() {
 
   const set = (key, val) => setForm(prev => {
     const updated = { ...prev, [key]: val };
-    try { localStorage.setItem("client_setup_form", JSON.stringify(updated)); } catch (e) {}
+    try { localStorage.setItem("client_setup_form", JSON.stringify(updated)); } catch (e) { /* intentionally ignored */ }
     return updated;
   });
 
@@ -169,7 +169,7 @@ export default function ClientSetup() {
       if (data.length > 0) {
         return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
       }
-    } catch {}
+    } catch { /* intentionally ignored */ }
     // fallback: só cidade
     try {
       const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(form.city + ', ' + form.country)}&limit=1`);
@@ -177,7 +177,7 @@ export default function ClientSetup() {
       if (data.length > 0) {
         return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
       }
-    } catch {}
+    } catch { /* intentionally ignored */ }
     return { lat: 38.7223, lng: -9.1393 };
   };
 

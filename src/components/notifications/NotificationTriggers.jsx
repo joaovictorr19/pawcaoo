@@ -243,7 +243,7 @@ export default function NotificationTriggers({ user }) {
             link: '/ProfessionalHubV2',
             related_id: b.id
           });
-        } catch {}
+        } catch { /* intentionally ignored */ }
       }
 
       // Status updates for owner
@@ -258,7 +258,7 @@ export default function NotificationTriggers({ user }) {
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification(title, { body, tag, icon: '/logo.png', badge: '/favicon.png' });
           }
-        } catch {}
+        } catch { /* intentionally ignored */ }
       };
 
       if (isOwner) {
@@ -321,7 +321,7 @@ export default function NotificationTriggers({ user }) {
             related_id: b.id,
             link: '/ProfessionalHubV2'
           });
-        } catch {}
+        } catch { /* intentionally ignored */ }
       }
     });
 
@@ -362,7 +362,7 @@ export default function NotificationTriggers({ user }) {
             icon: 'hotel',
             related_id: hb.id
           });
-        } catch {}
+        } catch { /* intentionally ignored */ }
       }
 
       // Push notification (Android/iOS via PWA)
@@ -377,7 +377,7 @@ export default function NotificationTriggers({ user }) {
             vibrate: [200, 100, 200],
             silent: false
           });
-        } catch {}
+        } catch { /* intentionally ignored */ }
       }
     });
 
@@ -418,7 +418,7 @@ export default function NotificationTriggers({ user }) {
             }
           }
         }
-      } catch {}
+      } catch { /* intentionally ignored */ }
     }, 60000);
     return () => clearInterval(timer);
   }, [user?.email, notifPrefs]);
@@ -455,7 +455,7 @@ export default function NotificationTriggers({ user }) {
             icon: 'diary',
             related_id: rec.booking_id || rec.id
           });
-        } catch {}
+        } catch { /* intentionally ignored */ }
       }
 
       // Push notification (Android/iOS via PWA)
@@ -470,7 +470,7 @@ export default function NotificationTriggers({ user }) {
             vibrate: [200, 100, 200],
             silent: false
           });
-        } catch {}
+        } catch { /* intentionally ignored */ }
       }
     });
 
@@ -515,7 +515,7 @@ export default function NotificationTriggers({ user }) {
                 icon: 'hotel',
                 related_id: hb.id
               });
-            } catch {}
+            } catch { /* intentionally ignored */ }
           }
           if (allowPush('booking') && 'Notification' in window && Notification.permission === 'granted') {
             try {
@@ -525,7 +525,7 @@ export default function NotificationTriggers({ user }) {
                 icon: '/logo.png', badge: '/favicon.png',
                 requireInteraction: true, vibrate: [200, 100, 200]
               });
-            } catch {}
+            } catch { /* intentionally ignored */ }
           }
         }
 
@@ -552,7 +552,7 @@ export default function NotificationTriggers({ user }) {
                 link: '/ProfessionalHubV2',
                 related_id: b.id
               });
-            } catch {}
+            } catch { /* intentionally ignored */ }
           }
           if (allowPush('booking') && 'Notification' in window && Notification.permission === 'granted') {
             try {
@@ -562,10 +562,10 @@ export default function NotificationTriggers({ user }) {
                 icon: '/logo.png', badge: '/favicon.png',
                 requireInteraction: true, vibrate: [200, 100, 200]
               });
-            } catch {}
+            } catch { /* intentionally ignored */ }
           }
         }
-      } catch {}
+      } catch { /* intentionally ignored */ }
     };
 
     checkPendingRequests();
@@ -615,7 +615,7 @@ export default function NotificationTriggers({ user }) {
                 icon: '⏰',
                 related_id: booking.id
               });
-            } catch {}
+            } catch { /* intentionally ignored */ }
           }
 
           // Browser push
@@ -628,7 +628,7 @@ export default function NotificationTriggers({ user }) {
                 badge: '/favicon.png',
                 requireInteraction: true
               });
-            } catch {}
+            } catch { /* intentionally ignored */ }
           }
         }
       } catch (err) {
@@ -680,7 +680,7 @@ export default function NotificationTriggers({ user }) {
                 icon: '⏰',
                 related_id: booking.id
               });
-            } catch {}
+            } catch { /* intentionally ignored */ }
           }
 
           if (allowPush('payment') && 'Notification' in window && Notification.permission === 'granted') {
@@ -692,7 +692,7 @@ export default function NotificationTriggers({ user }) {
                 badge: '/favicon.png',
                 requireInteraction: true
               });
-            } catch {}
+            } catch { /* intentionally ignored */ }
           }
         }
       } catch (err) {
@@ -733,7 +733,7 @@ export default function NotificationTriggers({ user }) {
         if (allowPush('alert') && 'Notification' in window && Notification.permission === 'granted') {
           new Notification('Pedido urgente PawGo', { body: 'Novo pedido disponível na sua área.', tag: `pawgo_${ew.id}`, icon: '/logo.png' });
         }
-      } catch {}
+      } catch { /* intentionally ignored */ }
     });
     return () => unsubscribe();
   }, [user?.email, notifPrefs]);

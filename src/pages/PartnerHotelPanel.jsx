@@ -78,7 +78,7 @@ export default function PartnerHotelPanel() {
                 );
                 return { ...hp, partnerRole: authoritative?.partner_role || p.partner_role };
               }
-            } catch {}
+            } catch { /* intentionally ignored */ }
           }
         }
         const hotels = await base44.entities.WalkerProfile.filter({ professional_type: 'hotel' }, undefined, 100);

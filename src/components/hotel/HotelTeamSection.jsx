@@ -35,7 +35,7 @@ export default function HotelTeamSection({ hotelEmail }) {
                 email: partnership.associated_email
               });
             }
-          } catch (e) {}
+          } catch (e) { /* intentionally ignored */ }
         }
 
         return partnersList;

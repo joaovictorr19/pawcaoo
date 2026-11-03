@@ -145,7 +145,7 @@ function BookingCard({ booking, onUpdate, hideFinance = false }) {
   if (booking.checkin_date) {
     try {
       daysUntil = differenceInDays(parseISO(booking.checkin_date), today);
-    } catch {}
+    } catch { /* intentionally ignored */ }
   }
 
   const isUpcoming = daysUntil !== null && daysUntil > 0 && ["confirmed", "pending"].includes(booking.status);
