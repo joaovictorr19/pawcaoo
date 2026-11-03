@@ -10,6 +10,7 @@ import { useLanguage } from "@/components/LanguageContext";
 import { ta } from "@/components/authTranslations";
 import { safeReturnTo } from "@/lib/authReturnTo";
 import SocialAuthButton from "@/components/auth/SocialAuthButton";
+import MissionTicker from "@/components/auth/MissionTicker";
 
 export default function Login() {
   const { language } = useLanguage();
@@ -72,13 +73,12 @@ export default function Login() {
           </span>
         </div>
 
-        <div className="relative">
-          <div className="mb-6 flex gap-3 text-white/25">
-            <PawPrint className="h-6 w-6" />
-            <PawPrint className="mt-4 h-6 w-6" />
-            <PawPrint className="h-6 w-6" />
-          </div>
-          <div className="h-px w-16 bg-white/25" />
+        <MissionTicker />
+
+        <div className="relative flex gap-3 text-white/25">
+          <PawPrint className="h-6 w-6" />
+          <PawPrint className="mt-4 h-6 w-6" />
+          <PawPrint className="h-6 w-6" />
         </div>
       </aside>
 
