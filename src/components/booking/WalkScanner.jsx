@@ -289,7 +289,7 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
         </DialogContent>
       </Dialog>
 
-      <style jsx>{`
+      <style>{`
         @keyframes scan {
           0%, 100% { top: 0; }
           50% { top: calc(100% - 4px); }
