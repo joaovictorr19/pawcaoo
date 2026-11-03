@@ -16,6 +16,9 @@ import ClientDataSettings from "@/components/client/ClientDataSettings";
 import ClientNotificationsWidget from "@/components/client/ClientNotificationsWidget";
 import { WalkSecurityPass } from "@/components/booking/WalkSecurityPass";
 import ClientFinalizeWalk from "@/components/client/ClientFinalizeWalk";
+import LegacyStageProgress from "@/components/gamification/LegacyStageProgress";
+import { fetchLegacyProgress } from "@/lib/legacyProgress";
+import { getMonthKey } from "@/lib/stagePrizes";
 import BackButton from "@/components/ui/BackButton";
 import {
   History, MapPin, Star, Shield, Award,
@@ -117,6 +120,16 @@ export default function ClientDashboard() {
     ),
     enabled: !!user?.email,
     refetchInterval: 30000,
+  });
+
+  const monthKey = getMonthKey();
+
+  const { data: legacyProgress = { bookings: 0, reviews: 0, points: 0 } } = useQuery({
+    queryKey: ['legacyProgress', user?.email, monthKey],
+    queryFn: () => fetchLegacyProgress(user?.email, monthKey),
+    enabled: !!user?.email,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const stats = useMemo(() => {
@@ -224,6 +237,21 @@ export default function ClientDashboard() {
                   </Card>
                 ))}
               </div>
+
+              {/* Progresso do Legado — reservas concluídas + reviews do mês */}
+              <Card className="bg-slate-900 border border-amber-500/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Award className="w-4 h-4 text-amber-400" />
+                    <p className="text-xs font-bold uppercase tracking-wider text-amber-400">O meu Legado</p>
+                  </div>
+                  <LegacyStageProgress
+                    points={legacyProgress.points}
+                    bookings={legacyProgress.bookings}
+                    reviews={legacyProgress.reviews}
+                  />
+                </CardContent>
+              </Card>
 
               {/* Preview dos meus animais */}
               {myDogs.length > 0 && (
