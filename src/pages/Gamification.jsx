@@ -2,14 +2,15 @@ import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
-import { Flame, Crown, Star, Zap, Trophy, Target, ShoppingBag, Moon, Footprints, Heart, Shield, Sparkles, ChevronLeft, ChevronRight, Wallet, PartyPopper, ArrowDown, ArrowUp } from "lucide-react";
+import { motion } from "framer-motion";
+import { Flame, Star, ChevronLeft, ChevronRight, Wallet, PartyPopper, ArrowDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import WeeklyDuelsPanel from "@/components/gamification/WeeklyDuelsPanel";
 import LegacyStageProgress from "@/components/gamification/LegacyStageProgress";
 import { fetchLegacyProgress } from "@/lib/legacyProgress";
 import { getMonthKey } from "@/lib/stagePrizes";
 import MonthlyReviewPodium from "@/components/gamification/MonthlyReviewPodium";
+import LegacyProvingSection from "@/components/gamification/LegacyProvingSection";
 import { createPageUrl } from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -18,142 +19,6 @@ import { useLanguage } from "@/components/LanguageContext";
 import { toast } from "sonner";
 import { t } from "@/components/translations";
 import { getLevelFromXP, getLevelProgress, getXPToNextLevel } from "@/components/gamification/tierSystem";
-
-// Missões/Provações
-const MISSIONS = [
-  {
-    id: 'night_walker',
-    title: 'O Dog Walker Noturno',
-    description: 'Completa 3 passeios após as 20h',
-    icon: Moon,
-    reward: 500,
-    rewardType: 'xp',
-    progress: 1,
-    total: 3,
-    rarity: 'epic'
-  },
-  {
-    id: 'elite_client',
-    title: 'Cliente de Elite',
-    description: 'Faz 3 compras na loja PawCão',
-    icon: ShoppingBag,
-    reward: 'Badge Rara',
-    rewardType: 'badge',
-    progress: 2,
-    total: 3,
-    rarity: 'legendary'
-  },
-  {
-    id: 'marathon_walker',
-    title: 'Maratonista Canino',
-    description: 'Acumula 50km em passeios',
-    icon: Footprints,
-    reward: 1000,
-    rewardType: 'xp',
-    progress: 32,
-    total: 50,
-    rarity: 'rare'
-  },
-  {
-    id: 'heart_of_gold',
-    title: 'Coração de Ouro',
-    description: 'Deixa 10 avaliações 5 estrelas',
-    icon: Heart,
-    reward: 750,
-    rewardType: 'xp',
-    progress: 7,
-    total: 10,
-    rarity: 'epic'
-  },
-  {
-    id: 'guardian',
-    title: 'Guardião Fiel',
-    description: 'Mantém subscrição activa por 6 meses',
-    icon: Shield,
-    reward: 'Título Exclusivo',
-    rewardType: 'title',
-    progress: 4,
-    total: 6,
-    rarity: 'legendary'
-  },
-  {
-    id: 'first_blood',
-    title: 'Primeiro Sangue',
-    description: 'Completa o teu primeiro passeio',
-    icon: Zap,
-    reward: 100,
-    rewardType: 'xp',
-    progress: 1,
-    total: 1,
-    rarity: 'common'
-  },
-  {
-    id: 'social_butterfly',
-    title: 'Borboleta Social',
-    description: 'Segue 20 utilizadores na comunidade',
-    icon: Heart,
-    reward: 300,
-    rewardType: 'xp',
-    progress: 12,
-    total: 20,
-    rarity: 'rare'
-  },
-  {
-    id: 'fire_streak',
-    title: 'Chama Imparável',
-    description: 'Faz passeios 7 dias seguidos',
-    icon: Flame,
-    reward: 800,
-    rewardType: 'xp',
-    progress: 3,
-    total: 7,
-    rarity: 'epic'
-  },
-  {
-    id: 'pack_leader',
-    title: 'Líder da Alcateia',
-    description: 'Indica 5 amigos para a PawCão',
-    icon: Crown,
-    reward: 'Badge Lendária',
-    rewardType: 'badge',
-    progress: 2,
-    total: 5,
-    rarity: 'legendary'
-  },
-  {
-    id: 'treasure_hunter',
-    title: 'Caçador de Tesouros',
-    description: 'Resgata 10 recompensas na loja',
-    icon: Star,
-    reward: 600,
-    rewardType: 'xp',
-    progress: 4,
-    total: 10,
-    rarity: 'rare'
-  },
-  {
-    id: 'emergency_hero',
-    title: 'Herói de Emergência',
-    description: 'Aceita 3 passeios de emergência',
-    icon: Zap,
-    reward: 'Título Herói',
-    rewardType: 'title',
-    progress: 1,
-    total: 3,
-    rarity: 'legendary'
-  },
-  {
-    id: 'perfect_score',
-    title: 'Pontuação Perfeita',
-    description: 'Recebe 5 avaliações de 5 estrelas',
-    icon: Star,
-    reward: 500,
-    rewardType: 'xp',
-    progress: 3,
-    total: 5,
-    rarity: 'epic'
-  }
-];
 
 // Títulos baseados em nível
 const LEVEL_TITLES = {
@@ -188,171 +53,9 @@ const getAuraColor = (level) => {
   return 'from-gray-500 via-gray-400 to-gray-600';
 };
 
-// Componente da Carta de Missão
-const MissionCard = ({ mission, isFlipped, onFlip }) => {
-  const rarityColors = {
-    common: 'border-gray-600 bg-gray-900/80',
-    rare: 'border-blue-500 bg-blue-950/80',
-    epic: 'border-purple-500 bg-purple-950/80',
-    legendary: 'border-amber-500 bg-amber-950/80'
-  };
-
-  const rarityGlow = {
-    common: '',
-    rare: 'shadow-blue-500/30',
-    epic: 'shadow-purple-500/30',
-    legendary: 'shadow-amber-500/50'
-  };
-
-  const Icon = mission.icon;
-  const progressPercent = (mission.progress / mission.total) * 100;
-
-  return (
-    <motion.div
-      className="relative w-52 h-72 sm:w-60 sm:h-84 md:w-64 md:h-96 cursor-pointer perspective-1000"
-      onClick={onFlip}
-      whileHover={{ scale: 1.05, y: -10 }}
-      transition={{ duration: 0.3 }}
-    >
-      <motion.div
-        className="relative w-full h-full"
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.6 }}
-        style={{ transformStyle: 'preserve-3d' }}
-      >
-        {/* Frente da Carta */}
-        <div 
-          className={`absolute inset-0 rounded-2xl border-2 ${rarityColors[mission.rarity]} shadow-2xl ${rarityGlow[mission.rarity]} backface-hidden overflow-hidden`}
-          style={{ backfaceVisibility: 'hidden' }}
-        >
-          {/* Padrão decorativo */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-4 left-4 w-8 h-8 border border-amber-500/50 rotate-45" />
-            <div className="absolute top-4 right-4 w-8 h-8 border border-amber-500/50 rotate-45" />
-            <div className="absolute bottom-4 left-4 w-8 h-8 border border-amber-500/50 rotate-45" />
-            <div className="absolute bottom-4 right-4 w-8 h-8 border border-amber-500/50 rotate-45" />
-          </div>
-
-          {/* Conteúdo */}
-          <div className="relative h-full flex flex-col items-center justify-between p-6">
-            {/* Raridade */}
-            <Badge className={`uppercase tracking-widest text-[10px] font-bold ${
-              mission.rarity === 'legendary' ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-black' :
-              mission.rarity === 'epic' ? 'bg-purple-600 text-white' :
-              mission.rarity === 'rare' ? 'bg-blue-600 text-white' :
-              'bg-gray-600 text-white'
-            }`}>
-              {mission.rarity}
-            </Badge>
-
-            {/* Ícone Central */}
-            <div 
-              className={`w-24 h-24 rounded-full flex items-center justify-center ${
-                mission.rarity === 'legendary' ? 'bg-gradient-to-br from-amber-500/30 to-orange-600/30 border-2 border-amber-500 shadow-[0_0_32px_rgba(245,158,11,0.45)]' :
-                mission.rarity === 'epic' ? 'bg-gradient-to-br from-purple-500/30 to-pink-600/30 border-2 border-purple-500 shadow-[0_0_24px_rgba(168,85,247,0.3)]' :
-                'bg-gradient-to-br from-blue-500/30 to-cyan-600/30 border-2 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.25)]'
-              }`}
-            >
-              <Icon className={`w-12 h-12 ${
-                mission.rarity === 'legendary' ? 'text-amber-400' :
-                mission.rarity === 'epic' ? 'text-purple-400' :
-                'text-blue-400'
-              }`} />
-            </div>
-
-            {/* Título */}
-            <div className="text-center">
-              <h3 className="text-lg font-black text-white tracking-wide uppercase mb-2">
-                {mission.title}
-              </h3>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                {mission.description}
-              </p>
-            </div>
-
-            {/* Recompensa */}
-            <div className="flex items-center gap-2 bg-black/50 rounded-full px-4 py-2 border border-amber-500/30">
-              {mission.rewardType === 'xp' ? (
-                <>
-                  <Flame className="w-4 h-4 text-orange-500" />
-                  <span className="text-amber-400 font-bold">{mission.reward} XP</span>
-                </>
-              ) : mission.rewardType === 'badge' ? (
-                <>
-                  <Sparkles className="w-4 h-4 text-purple-400" />
-                  <span className="text-purple-400 font-bold">{mission.reward}</span>
-                </>
-              ) : (
-                <>
-                  <Crown className="w-4 h-4 text-amber-400" />
-                  <span className="text-amber-400 font-bold">{mission.reward}</span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Verso da Carta (Progresso) */}
-        <div 
-          className={`absolute inset-0 rounded-2xl border-2 ${rarityColors[mission.rarity]} shadow-2xl ${rarityGlow[mission.rarity]} overflow-hidden`}
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-        >
-          <div className="relative h-full flex flex-col items-center justify-center p-6 bg-gradient-to-b from-black/50 to-black/80">
-            {/* Símbolo central */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 opacity-10">
-              <Icon className="w-full h-full text-amber-500" />
-            </div>
-
-            <h4 className="text-amber-400 font-black uppercase tracking-widest text-sm mb-8 relative z-10">
-              Progresso
-            </h4>
-
-            {/* Barra de progresso vertical estilo totem */}
-            <div className="relative w-16 h-48 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden mb-6">
-              <motion.div 
-                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-orange-600 via-amber-500 to-yellow-400"
-                initial={{ height: 0 }}
-                animate={{ height: `${progressPercent}%` }}
-                transition={{ duration: 1, delay: 0.3 }}
-              >
-                {/* Efeito de lava */}
-                <div className="absolute inset-0 bg-gradient-to-t from-red-600/50 to-transparent animate-pulse" />
-              </motion.div>
-              
-              {/* Marcadores */}
-              {[25, 50, 75].map((mark) => (
-                <div 
-                  key={mark} 
-                  className="absolute left-0 right-0 h-0.5 bg-amber-500/30"
-                  style={{ bottom: `${mark}%` }}
-                />
-              ))}
-            </div>
-
-            <div className="text-center relative z-10">
-              <p className="text-3xl font-black text-white mb-1">
-                {mission.progress}/{mission.total}
-              </p>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">
-                {Math.round(progressPercent)}% Completo
-              </p>
-            </div>
-
-            <p className="text-xs text-gray-600 mt-4 text-center relative z-10">
-              Clica para voltar
-            </p>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-};
-
 export default function Gamification() {
   const { language } = useLanguage();
   const queryClient = useQueryClient();
-  const [flippedCard, setFlippedCard] = useState(null);
-  const [carouselIndex, setCarouselIndex] = useState(0);
   const [showFullRanking, setShowFullRanking] = useState(false);
   const [rankingPage, setRankingPage] = useState(1);
   const rankingPerPage = 20;
@@ -482,14 +185,6 @@ export default function Gamification() {
   const progressInLevel = getLevelProgress(currentXP);
   const title = getTitle(currentLevel);
   const auraColor = getAuraColor(currentLevel);
-
-  const nextCard = () => {
-    setCarouselIndex((prev) => (prev + 1) % MISSIONS.length);
-  };
-
-  const prevCard = () => {
-    setCarouselIndex((prev) => (prev - 1 + MISSIONS.length) % MISSIONS.length);
-  };
 
   const paginatedUsers = showFullRanking 
     ? rankedUsers.slice((rankingPage - 1) * rankingPerPage, rankingPage * rankingPerPage)
@@ -749,84 +444,7 @@ export default function Gamification() {
       <WeeklyDuelsPanel user={user} users={allUsers} />
 
       {/* ========== SECÇÃO 3: AS PROVAÇÕES ========== */}
-      <section className="relative py-10 md:py-16 px-3 md:px-4 border-t border-amber-500/10">
-        <div className="max-w-6xl mx-auto">
-          <motion.h2
-            className="text-center text-amber-500/60 uppercase tracking-[0.2em] md:tracking-[0.3em] text-xs md:text-sm font-bold mb-3"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            As Provações
-          </motion.h2>
-          <p className="text-center text-gray-600 text-xs mb-8 md:mb-12">
-            Completa missões para ganhar XP e recompensas exclusivas
-          </p>
-
-          {/* Carrossel de Cartas */}
-          <div className="relative">
-            {/* Botões de navegação */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={prevCard}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 h-12 w-12 rounded-full"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={nextCard}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 h-12 w-12 rounded-full"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </Button>
-
-            {/* Container das cartas */}
-            <div className="flex justify-center items-center gap-2 md:gap-4 overflow-hidden px-10 md:px-16 py-6 md:py-8">
-              <AnimatePresence mode="popLayout">
-                {MISSIONS.slice(carouselIndex, carouselIndex + 3).concat(
-                  MISSIONS.slice(0, Math.max(0, carouselIndex + 3 - MISSIONS.length))
-                ).slice(0, 3).map((mission, idx) => (
-                  <motion.div
-                    key={mission.id}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ 
-                      opacity: idx === 1 ? 1 : 0.6, 
-                      scale: idx === 1 ? 1 : 0.85,
-                      zIndex: idx === 1 ? 10 : 0
-                    }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.3 }}
-                    className={idx === 1 ? '' : 'hidden md:block'}
-                  >
-                    <MissionCard
-                      mission={mission}
-                      isFlipped={flippedCard === mission.id}
-                      onFlip={() => setFlippedCard(flippedCard === mission.id ? null : mission.id)}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-
-            {/* Indicadores */}
-            <div className="flex justify-center gap-2 mt-6">
-              {MISSIONS.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCarouselIndex(idx)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    idx === carouselIndex ? 'bg-amber-500 w-6' : 'bg-neutral-700 hover:bg-neutral-600'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <LegacyProvingSection user={user} userProfile={userProfile} />
 
       {/* Decoração inferior - Chamas */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-orange-950/30 to-transparent pointer-events-none" />
