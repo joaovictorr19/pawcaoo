@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Gift, Loader2, Save } from "lucide-react";
 import { STAGE_POSITIONS, getMonthKey, getMonthLabel, stageThreshold } from "@/lib/stagePrizes";
+import { callPrizeAward, emptyAward, readAward } from "@/lib/prizeAwards";
+import PrizeAwardStatus from "@/components/admin/prizes/PrizeAwardStatus";
 
 const emptyStages = () =>
   STAGE_POSITIONS.map((position) => ({
@@ -15,6 +17,7 @@ const emptyStages = () =>
     title: "",
     description: "",
     image_url: "",
+    ...emptyAward(),
   }));
 
 /** Gestão dos quatro prémios mensais das etapas de O Legado. */
@@ -24,6 +27,7 @@ export default function AdminLegacyPrizes() {
   const [stages, setStages] = useState(emptyStages);
   const [isActive, setIsActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [busyPosition, setBusyPosition] = useState(null);
 
   const { data: record = null, isLoading } = useQuery({
     queryKey: ["adminMonthlyStagePrize", monthKey],
@@ -46,6 +50,7 @@ export default function AdminLegacyPrizes() {
           title: match?.title || "",
           description: match?.description || "",
           image_url: match?.image_url || "",
+          ...readAward(match),
         };
       })
     );
@@ -70,6 +75,10 @@ export default function AdminLegacyPrizes() {
           title: stage.title.trim(),
           description: stage.description.trim(),
           image_url: stage.image_url.trim(),
+          winner_email: (stage.winner_email || "").trim(),
+          winner_name: (stage.winner_name || "").trim(),
+          redeemed_at: stage.redeemed_at || null,
+          redeemed_by: stage.redeemed_by || "",
         })),
       };
 
@@ -86,6 +95,35 @@ export default function AdminLegacyPrizes() {
       toast.error(error?.message || "Não foi possível guardar os prémios");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleAward = async (position, action) => {
+    const stage = stages.find((item) => item.position === position);
+    if (!stage) return;
+
+    setBusyPosition(position);
+    try {
+      const item = await callPrizeAward({
+        collection: "MonthlyStagePrize",
+        monthKey,
+        category: "stages",
+        position,
+        action,
+        winnerEmail: action === "redeem" ? (stage.winner_email || "").trim() : "",
+        winnerName: action === "redeem" ? (stage.winner_name || "").trim() : "",
+      });
+
+      setStages((prev) =>
+        prev.map((entry) => (entry.position === position ? { ...entry, ...readAward(item) } : entry))
+      );
+      queryClient.invalidateQueries({ queryKey: ["adminMonthlyStagePrize", monthKey] });
+      queryClient.invalidateQueries({ queryKey: ["monthlyStagePrize", monthKey] });
+      toast.success(action === "redeem" ? "Entrega registada" : "Entrega anulada");
+    } catch (error) {
+      toast.error(error?.message || "Não foi possível registar a entrega");
+    } finally {
+      setBusyPosition(null);
     }
   };
 
@@ -168,6 +206,23 @@ export default function AdminLegacyPrizes() {
                 value={stage.image_url}
                 onChange={(event) => updateStage(stage.position, "image_url", event.target.value)}
                 className="rounded-xl"
+              />
+
+              <Input
+                placeholder="Vencedor (email)"
+                value={stage.winner_email}
+                onChange={(event) => updateStage(stage.position, "winner_email", event.target.value)}
+                disabled={!!stage.redeemed_at}
+                className="rounded-xl"
+              />
+
+              <PrizeAwardStatus
+                winnerEmail={stage.winner_email}
+                winnerName={stage.winner_name}
+                redeemedAt={stage.redeemed_at}
+                isBusy={busyPosition === stage.position}
+                onRedeem={() => handleAward(stage.position, "redeem")}
+                onClear={() => handleAward(stage.position, "clear")}
               />
             </div>
           ))}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -9,6 +9,9 @@ import { Switch } from "@/components/ui/switch";
 import { Building2, Footprints, Loader2, Save, Trophy } from "lucide-react";
 import { PODIUM_POSITIONS } from "@/lib/podiumPrizes";
 import { getMonthKey, getMonthLabel } from "@/lib/stagePrizes";
+import { buildCategoryPodium, getLisbonRangeForMonthKey } from "@/lib/reviewPodium";
+import { callPrizeAward, emptyAward, readAward } from "@/lib/prizeAwards";
+import PrizeAwardStatus from "@/components/admin/prizes/PrizeAwardStatus";
 
 const CATEGORIES = [
   { key: "hotel_prizes", label: "Pódio dos Hotéis", icon: Building2 },
@@ -16,7 +19,13 @@ const CATEGORIES = [
 ];
 
 const emptyPositions = () =>
-  PODIUM_POSITIONS.map((position) => ({ position, title: "", description: "", image_url: "" }));
+  PODIUM_POSITIONS.map((position) => ({
+    position,
+    title: "",
+    description: "",
+    image_url: "",
+    ...emptyAward(),
+  }));
 
 const readPositions = (list) =>
   PODIUM_POSITIONS.map((position) => {
@@ -26,6 +35,7 @@ const readPositions = (list) =>
       title: match?.title || "",
       description: match?.description || "",
       image_url: match?.image_url || "",
+      ...readAward(match),
     };
   });
 
@@ -39,6 +49,48 @@ export default function AdminPodiumPrizes() {
   });
   const [isActive, setIsActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [busyKey, setBusyKey] = useState(null);
+
+  const monthRange = useMemo(() => getLisbonRangeForMonthKey(monthKey), [monthKey]);
+
+  // Vencedores do mês: os três profissionais de cada categoria com mais reviews recebidas.
+  const { data: winners = { hotel: [], walker: [] } } = useQuery({
+    queryKey: ["adminPodiumWinners", monthKey],
+    queryFn: async () => {
+      const reviews = await base44.entities.Review.filter(
+        {
+          created_date: {
+            $gte: monthRange.start.toISOString(),
+            $lt: monthRange.end.toISOString(),
+          },
+        },
+        "-created_date",
+        500
+      );
+
+      const ids = Array.from(new Set((reviews || []).map((review) => review.walker_id).filter(Boolean)));
+      if (ids.length === 0) return { hotel: [], walker: [] };
+
+      const profiles = await base44.entities.WalkerProfile.filter({ id: { $in: ids } });
+      const byId = new Map((profiles || []).map((profile) => [profile.id, profile]));
+
+      const decorate = (entries) =>
+        entries.map((entry) => {
+          const profile = byId.get(entry.professionalId);
+          return {
+            email: profile?.created_by || "",
+            name: profile?.walker_name || profile?.hotel_details?.hotel_name || entry.name || "",
+          };
+        });
+
+      return {
+        hotel: decorate(buildCategoryPodium(reviews, byId, "hotel")),
+        walker: decorate(buildCategoryPodium(reviews, byId, "walker")),
+      };
+    },
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
   const { data: record = null, isLoading } = useQuery({
     queryKey: ["adminMonthlyPodiumPrize", monthKey],
@@ -76,6 +128,10 @@ export default function AdminPodiumPrizes() {
         title: prize.title.trim(),
         description: prize.description.trim(),
         image_url: prize.image_url.trim(),
+        winner_email: (prize.winner_email || "").trim(),
+        winner_name: (prize.winner_name || "").trim(),
+        redeemed_at: prize.redeemed_at || null,
+        redeemed_by: prize.redeemed_by || "",
       }));
 
     try {
@@ -100,6 +156,35 @@ export default function AdminPodiumPrizes() {
       toast.error(error?.message || "Não foi possível guardar os prémios");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleAward = async (categoryKey, position, action, winnerEmail, winnerName) => {
+    setBusyKey(`${categoryKey}-${position}`);
+    try {
+      const item = await callPrizeAward({
+        collection: "MonthlyPodiumPrize",
+        monthKey,
+        category: categoryKey,
+        position,
+        action,
+        winnerEmail: action === "redeem" ? (winnerEmail || "").trim() : "",
+        winnerName: action === "redeem" ? (winnerName || "").trim() : "",
+      });
+
+      setPrizes((prev) => ({
+        ...prev,
+        [categoryKey]: prev[categoryKey].map((prize) =>
+          prize.position === position ? { ...prize, ...readAward(item) } : prize
+        ),
+      }));
+      queryClient.invalidateQueries({ queryKey: ["adminMonthlyPodiumPrize", monthKey] });
+      queryClient.invalidateQueries({ queryKey: ["monthlyPodiumPrize", monthKey] });
+      toast.success(action === "redeem" ? "Entrega registada" : "Entrega anulada");
+    } catch (error) {
+      toast.error(error?.message || "Não foi possível registar a entrega");
+    } finally {
+      setBusyKey(null);
     }
   };
 
@@ -158,7 +243,12 @@ export default function AdminPodiumPrizes() {
               </p>
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                {prizes[category.key].map((prize) => (
+                {prizes[category.key].map((prize) => {
+                  const derived = winners?.[category.key === "hotel_prizes" ? "hotel" : "walker"]?.[prize.position - 1];
+                  const winnerEmail = prize.winner_email || derived?.email || "";
+                  const winnerName = prize.winner_name || derived?.name || "";
+
+                  return (
                   <div key={prize.position} className="space-y-2 rounded-xl border border-slate-100 bg-slate-50/60 p-3">
                     <span className="inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600">
                       {prize.position}º lugar
@@ -185,8 +275,20 @@ export default function AdminPodiumPrizes() {
                       onChange={(event) => updatePrize(category.key, prize.position, "image_url", event.target.value)}
                       className="rounded-xl bg-white"
                     />
+
+                    <PrizeAwardStatus
+                      winnerEmail={winnerEmail}
+                      winnerName={winnerName}
+                      redeemedAt={prize.redeemed_at}
+                      isBusy={busyKey === `${category.key}-${prize.position}`}
+                      onRedeem={() =>
+                        handleAward(category.key, prize.position, "redeem", winnerEmail, winnerName)
+                      }
+                      onClear={() => handleAward(category.key, prize.position, "clear")}
+                    />
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}

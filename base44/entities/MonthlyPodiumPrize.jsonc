@@ -37,6 +37,23 @@
           "image_url": {
             "type": "string",
             "description": "Imagem do pr\u00e9mio"
+          },
+          "winner_email": {
+            "type": "string",
+            "description": "Email do vencedor deste pr\u00e9mio (um \u00fanico vencedor)"
+          },
+          "winner_name": {
+            "type": "string",
+            "description": "Nome do vencedor deste pr\u00e9mio"
+          },
+          "redeemed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data em que o pr\u00e9mio foi entregue \u2014 depois de preenchida, o pr\u00e9mio deixa de estar dispon\u00edvel"
+          },
+          "redeemed_by": {
+            "type": "string",
+            "description": "Admin que registou a entrega"
           }
         }
       }
@@ -63,6 +80,23 @@
           "image_url": {
             "type": "string",
             "description": "Imagem do pr\u00e9mio"
+          },
+          "winner_email": {
+            "type": "string",
+            "description": "Email do vencedor deste pr\u00e9mio (um \u00fanico vencedor)"
+          },
+          "winner_name": {
+            "type": "string",
+            "description": "Nome do vencedor deste pr\u00e9mio"
+          },
+          "redeemed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data em que o pr\u00e9mio foi entregue \u2014 depois de preenchida, o pr\u00e9mio deixa de estar dispon\u00edvel"
+          },
+          "redeemed_by": {
+            "type": "string",
+            "description": "Admin que registou a entrega"
           }
         }
       }

@@ -66,6 +66,22 @@ export function getLisbonMonthRange(now = new Date()) {
   };
 }
 
+/** Início e fim (exclusivo) de um mês AAAA-MM no fuso Europe/Lisbon. */
+export function getLisbonRangeForMonthKey(monthKey) {
+  const [yearStr, monthStr] = String(monthKey || "").split("-");
+  const year = Number(yearStr);
+  const monthIndex = Number(monthStr) - 1;
+
+  if (!Number.isFinite(year) || !Number.isFinite(monthIndex) || monthIndex < 0 || monthIndex > 11) {
+    return getLisbonMonthRange(new Date());
+  }
+
+  return {
+    start: lisbonMidnight(year, monthIndex, 1),
+    end: lisbonMidnight(monthIndex === 11 ? year + 1 : year, (monthIndex + 1) % 12, 1),
+  };
+}
+
 /** Pontos de uma review: estrelas (1–5) + bónus de comentário. Usado só no desempate. */
 export function scoreReview(review) {
   const rating = Math.round(Number(review?.rating));
