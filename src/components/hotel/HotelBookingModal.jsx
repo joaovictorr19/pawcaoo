@@ -260,7 +260,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="max-h-[92vh] rounded-t-[1.25rem] bg-white focus:outline-none flex flex-col">
         {/* Header */}
-        <div className="px-5 pt-4 pb-4 border-b border-slate-200/70">
+        <div className="px-5 pt-4 pb-4 border-b border-slate-200 bg-white">
           <div className="flex items-center gap-3">
             {step > 0 && !finalized ? (
               <motion.button
@@ -276,7 +276,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-slate-400 truncate">
+              <p className="text-[10px] uppercase tracking-[0.18em] font-bold text-slate-500 truncate">
                 {hotel.walker_name} · {selectedService.service_name}
               </p>
               <h2 className="text-[22px] leading-tight font-black text-slate-900 tracking-tight truncate">
@@ -303,7 +303,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   />
                 ))}
               </div>
-              <p className="text-[10px] font-semibold text-slate-400 mt-2">
+              <p className="text-[10px] font-bold text-slate-500 mt-2">
                 Etapa {step + 1} de {steps.length}
               </p>
             </>
@@ -327,7 +327,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                 <div className="space-y-3">
                   {myDogs.length === 0 ? (
                     <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/60 rounded-3xl p-8 text-center space-y-4">
-                      <div className="w-16 h-16 mx-auto rounded-2xl bg-white/70 border border-orange-200/60 flex items-center justify-center">
+                      <div className="w-16 h-16 mx-auto rounded-2xl bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] border border-orange-200/60 flex items-center justify-center">
                         <PawPrint className="w-8 h-8 text-orange-400" />
                       </div>
                       <div>
@@ -345,10 +345,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                    <>
                      <div className="flex items-center justify-between">
                        <div>
-                         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
                            Selecione os animais
                          </p>
-                         <p className="text-[10px] text-slate-400 mt-0.5">Pode escolher mais do que um</p>
+                         <p className="text-[10px] text-slate-500 mt-0.5">Pode escolher mais do que um</p>
                        </div>
                         {selectedDogIds.length > 0 && (
                           <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full">
@@ -386,10 +386,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   {needsCareInfo ? (
                   <>
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
                       Cuidados do Animal
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       Informe a equipa do hotel sobre dieta, medicamentos e rotina
                     </p>
                   </div>
@@ -406,7 +406,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       [dog.id]: { ...prev[dog.id], [field]: val }
                     }));
                     return (
-                      <div key={dog.id} className="rounded-2xl border border-slate-200/80 bg-white/70 p-3.5 space-y-2.5">
+                      <div key={dog.id} className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] p-3.5 space-y-2.5">
                         <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
                           {dog.photo_url ? (
                             <img src={dog.photo_url} className="w-9 h-9 rounded-lg object-cover" alt={dog.dog_name} />
@@ -417,7 +417,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           )}
                           <div>
                             <p className="font-bold text-slate-900 text-sm">{dog.dog_name}</p>
-                            <span className="text-[10px] text-slate-400">{dog.breed || 'SRD'}</span>
+                            <span className="text-[10px] text-slate-500">{dog.breed || 'SRD'}</span>
                           </div>
                         </div>
                         <div>
@@ -429,7 +429,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             onChange={e => updateCare('diet', e.target.value)}
                             placeholder="Ração, marca, quantidade, horários..."
                             rows={2}
-                            className="w-full p-3 rounded-xl border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
+                            className="w-full p-3 rounded-xl border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-500 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
                           />
                         </div>
                         <div>
@@ -441,7 +441,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             onChange={e => updateCare('medications', e.target.value)}
                             placeholder="Nome, dosagem, frequência e horários..."
                             rows={2}
-                            className="w-full p-3 rounded-xl border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
+                            className="w-full p-3 rounded-xl border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-500 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
                           />
                         </div>
                         <div>
@@ -453,7 +453,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             onChange={e => updateCare('routine', e.target.value)}
                             placeholder="Passeios, sestas, brincadeiras, hábitos..."
                             rows={2}
-                            className="w-full p-3 rounded-xl border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
+                            className="w-full p-3 rounded-xl border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-500 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
                           />
                         </div>
                       </div>
@@ -463,8 +463,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   ) : isGrooming ? (
                     <div className="space-y-3">
                       <div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Tipo de Corte / Serviço</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Escolha o tipo de banho e tosquias</p>
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Tipo de Corte / Serviço</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Escolha o tipo de banho e tosquias</p>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         {[
@@ -475,15 +475,15 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         ].map(opt => (
                           <button key={opt.value} type="button"
                             onClick={() => setGroomingType(opt.value)}
-                            className={`p-3 rounded-lg border-2 text-center transition-all ${
-                              groomingType === opt.value ? 'border-slate-900 bg-slate-100 ring-1 ring-slate-900/10' : 'border-slate-300 bg-white/70 hover:border-slate-400 hover:bg-white'
+                            className={`p-3 tap-stable rounded-lg border-2 text-center transition-colors ${
+                              groomingType === opt.value ? 'border-[#0d9483] bg-[#0d9483]/10 ring-1 ring-[#0d9483]/30' : 'border-slate-200 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] hover:border-slate-300'
                             }`}>
                             <p className="text-xs font-bold text-slate-900">{opt.label}</p>
                           </button>
                         ))}
                       </div>
                       {selectedDogs.map(dog => (
-                        <div key={dog.id} className="flex items-center gap-2 bg-slate-100/80 border border-slate-200/70 rounded-lg px-3 py-2">
+                        <div key={dog.id} className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 shadow-[0_2px_8px_-3px_rgba(15,23,42,0.15)]">
                           {dog.photo_url ? <img src={dog.photo_url} className="w-7 h-7 rounded-lg object-cover" alt={dog.dog_name} /> : <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center"><PawPrint className="w-3.5 h-3.5 text-orange-400" /></div>}
                           <span className="text-sm font-semibold text-slate-700">{dog.dog_name}</span>
                         </div>
@@ -492,18 +492,18 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   ) : isTraining ? (
                     <div className="space-y-3">
                       <div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Objetivo do Treino</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Descreva o que pretende trabalhar com o seu animal</p>
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Objetivo do Treino</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Descreva o que pretende trabalhar com o seu animal</p>
                       </div>
                       <textarea
                         value={trainingGoal}
                         onChange={e => setTrainingGoal(e.target.value)}
                         placeholder="Ex: Comportamento na trela, socialização, obediência básica, ansiedade de separação..."
                         rows={4}
-                        className="w-full p-3 rounded-xl border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
+                        className="w-full p-3 rounded-xl border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-500 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
                       />
                       {selectedDogs.map(dog => (
-                        <div key={dog.id} className="flex items-center gap-2 bg-slate-100/80 border border-slate-200/70 rounded-lg px-3 py-2">
+                        <div key={dog.id} className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 shadow-[0_2px_8px_-3px_rgba(15,23,42,0.15)]">
                           {dog.photo_url ? <img src={dog.photo_url} className="w-7 h-7 rounded-lg object-cover" alt={dog.dog_name} /> : <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center"><PawPrint className="w-3.5 h-3.5 text-orange-400" /></div>}
                           <span className="text-sm font-semibold text-slate-700">{dog.dog_name}</span>
                         </div>
@@ -512,8 +512,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   ) : isDropin ? (
                     <div className="space-y-3">
                       <div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Assistência em Casa</p>
-                        <p className="text-xs text-slate-400 mt-0.5">O profissional desloca-se a sua casa</p>
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Assistência em Casa</p>
+                        <p className="text-xs text-slate-500 mt-0.5">O profissional desloca-se a sua casa</p>
                       </div>
                       <div>
                         <label className="text-[11px] font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1.5 tracking-wider">
@@ -524,7 +524,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           onChange={e => setServiceAddress(e.target.value)}
                           placeholder="Rua, número, andar, código postal, cidade..."
                           rows={3}
-                          className="w-full p-3 rounded-xl border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
+                          className="w-full p-3 rounded-xl border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-500 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
                         />
                       </div>
                       <div>
@@ -535,8 +535,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           {[30, 60, 90].map(d => (
                             <button key={d} type="button"
                               onClick={() => setServiceDuration(d)}
-                              className={`p-3 rounded-lg border-2 text-center transition-all ${
-                                serviceDuration === d ? 'border-slate-900 bg-slate-100 ring-1 ring-slate-900/10' : 'border-slate-300 bg-white/70 hover:border-slate-400 hover:bg-white'
+                              className={`p-3 tap-stable rounded-lg border-2 text-center transition-colors ${
+                                serviceDuration === d ? 'border-[#0d9483] bg-[#0d9483]/10 ring-1 ring-[#0d9483]/30' : 'border-slate-200 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] hover:border-slate-300'
                               }`}>
                               <p className="text-sm font-bold text-slate-900">{d} min</p>
                             </button>
@@ -544,7 +544,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         </div>
                       </div>
                       {selectedDogs.map(dog => (
-                        <div key={dog.id} className="flex items-center gap-2 bg-slate-100/80 border border-slate-200/70 rounded-lg px-3 py-2">
+                        <div key={dog.id} className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 shadow-[0_2px_8px_-3px_rgba(15,23,42,0.15)]">
                           {dog.photo_url ? <img src={dog.photo_url} className="w-7 h-7 rounded-lg object-cover" alt={dog.dog_name} /> : <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center"><PawPrint className="w-3.5 h-3.5 text-orange-400" /></div>}
                           <span className="text-sm font-semibold text-slate-700">{dog.dog_name}</span>
                         </div>
@@ -553,7 +553,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   ) : (
                     <div className="flex flex-col items-center justify-center text-center py-12 space-y-4">
                       <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
-                        <PawPrint className="w-8 h-8 text-slate-400" />
+                        <PawPrint className="w-8 h-8 text-slate-500" />
                       </div>
                       <div className="space-y-1.5">
                         <p className="font-bold text-slate-800 text-base">Sem informações necessárias</p>
@@ -562,7 +562,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         </p>
                       </div>
                       {selectedDogs.map(dog => (
-                        <div key={dog.id} className="flex items-center gap-2 bg-slate-100/80 border border-slate-200/70 rounded-lg px-3 py-2">
+                        <div key={dog.id} className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 shadow-[0_2px_8px_-3px_rgba(15,23,42,0.15)]">
                           {dog.photo_url ? <img src={dog.photo_url} className="w-7 h-7 rounded-lg object-cover" alt={dog.dog_name} /> : <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center"><PawPrint className="w-3.5 h-3.5 text-orange-400" /></div>}
                           <span className="text-sm font-semibold text-slate-700">{dog.dog_name}</span>
                         </div>
@@ -578,15 +578,15 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   {isOvernight ? (
                     <>
                       <div className="flex items-center gap-2">
-                        <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkinDate ? 'border-slate-900 bg-slate-100 ring-1 ring-slate-900/10' : 'border-slate-300 bg-white/70'}`}>
-                          <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Entrada</p>
+                        <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkinDate ? 'border-[#0d9483] bg-[#0d9483]/10 ring-1 ring-[#0d9483]/30' : 'border-slate-300 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)]'}`}>
+                          <p className="text-[9px] font-black uppercase text-slate-500 tracking-wider">Entrada</p>
                           <p className="text-xs font-black text-slate-900 mt-0.5">{checkinDate ? formatDate(checkinDate) : '—'}</p>
                         </div>
                         <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                          <ChevronLeft className="w-3 h-3 text-slate-400 rotate-180" />
+                          <ChevronLeft className="w-3 h-3 text-slate-500 rotate-180" />
                         </div>
-                        <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkoutDate ? 'border-slate-900 bg-slate-100 ring-1 ring-slate-900/10' : checkinDate ? 'border-slate-400 bg-amber-50 animate-pulse' : 'border-slate-300 bg-white/70'}`}>
-                          <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Saída</p>
+                        <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkoutDate ? 'border-[#0d9483] bg-[#0d9483]/10 ring-1 ring-[#0d9483]/30' : checkinDate ? 'border-slate-400 bg-amber-50 animate-pulse' : 'border-slate-300 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)]'}`}>
+                          <p className="text-[9px] font-black uppercase text-slate-500 tracking-wider">Saída</p>
                           <p className="text-xs font-black text-slate-900 mt-0.5">{checkoutDate ? formatDate(checkoutDate) : checkinDate ? 'Selecionar' : '—'}</p>
                         </div>
                       </div>
@@ -608,7 +608,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           </p>
                         </div>
                       )}
-                      <div className="bg-white/70 rounded-xl border border-slate-200/80 p-2.5">
+                      <div className="bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] rounded-xl border border-slate-200/80 p-2.5">
                         <HotelRangeCalendar
                           daysOff={(hotel?.hotel_details?.blocked_dates || []).map(d => ({ date: d }))}
                           checkinPolicy={checkinPolicy}
@@ -619,17 +619,17 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       </div>
                       {checkinDate && (
                         <div className="grid grid-cols-2 gap-2.5">
-                          <div className="bg-white/70 border border-slate-300 rounded-lg p-2.5 text-center">
-                            <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1 mb-1.5"><Clock className="w-2.5 h-2.5" /> Hora de Entrada</p>
+                          <div className="bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] border border-slate-300 rounded-lg p-2.5 text-center">
+                            <p className="text-[9px] font-bold uppercase text-slate-500 tracking-wider flex items-center justify-center gap-1 mb-1.5"><Clock className="w-2.5 h-2.5" /> Hora de Entrada</p>
                             <input type="time" value={checkinTime} onChange={e => setCheckinTime(e.target.value)}
                               className="w-full p-1.5 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm font-bold text-center focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10" />
-                            <p className="text-[9px] text-slate-400 mt-1">Indique a sua hora prevista</p>
+                            <p className="text-[9px] text-slate-500 mt-1">Indique a sua hora prevista</p>
                           </div>
-                          <div className="bg-white/70 border border-slate-300 rounded-lg p-2.5 text-center">
-                            <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1 mb-1.5"><Clock className="w-2.5 h-2.5" /> Hora de Saída</p>
+                          <div className="bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] border border-slate-300 rounded-lg p-2.5 text-center">
+                            <p className="text-[9px] font-bold uppercase text-slate-500 tracking-wider flex items-center justify-center gap-1 mb-1.5"><Clock className="w-2.5 h-2.5" /> Hora de Saída</p>
                             <input type="time" value={checkoutTime} onChange={e => setCheckoutTime(e.target.value)}
                               className="w-full p-1.5 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm font-bold text-center focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10" />
-                            <p className="text-[9px] text-slate-400 mt-1">Indique a sua hora prevista</p>
+                            <p className="text-[9px] text-slate-500 mt-1">Indique a sua hora prevista</p>
                           </div>
                         </div>
                       )}
@@ -637,10 +637,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   ) : (
                     <>
                       <div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
                           {isAppointment ? 'Escolha a data e hora' : 'Escolha a data'}
                         </p>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           {isAppointment ? 'Agendamento para sessão única' : 'Dia completo (creche)'}
                         </p>
                       </div>
@@ -652,13 +652,13 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           </p>
                         </div>
                       )}
-                      <div className="bg-white/70 rounded-xl border border-slate-300 p-3">
+                      <div className="bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] rounded-xl border border-slate-300 p-3">
                         <input
                           type="date"
                           value={checkinDate}
                           min={new Date().toISOString().split('T')[0]}
                           onChange={e => setCheckinDate(e.target.value)}
-                          className="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors"
+                          className="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-500 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors"
                         />
                       </div>
                       {isAppointment && (
@@ -670,9 +670,9 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             type="time"
                             value={preferredTime}
                             onChange={e => setPreferredTime(e.target.value)}
-                            className="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors"
+                            className="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-500 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors"
                           />
-                          <p className="text-[10px] text-slate-400 mt-1">O hotel confirmará a disponibilidade do horário</p>
+                          <p className="text-[10px] text-slate-500 mt-1">O hotel confirmará a disponibilidade do horário</p>
                         </div>
                       )}
                       {isWalk && (
@@ -684,10 +684,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             <button
                               type="button"
                               onClick={() => setWalkDuration(30)}
-                              className={`p-3 rounded-lg border-2 text-center transition-all ${
+                              className={`p-3 tap-stable rounded-lg border-2 text-center transition-colors ${
                                 walkDuration === 30
-                                  ? 'border-slate-900 bg-slate-100 ring-1 ring-slate-900/10'
-                                  : 'border-slate-300 bg-white/70 hover:border-slate-400 hover:bg-white'
+                                  ? 'border-[#0d9483] bg-[#0d9483]/10 ring-1 ring-[#0d9483]/30'
+                                  : 'border-slate-200 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] hover:border-slate-300'
                               }`}
                             >
                               <p className="text-sm font-black text-slate-900">30 min</p>
@@ -695,10 +695,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             <button
                               type="button"
                               onClick={() => setWalkDuration(60)}
-                              className={`p-3 rounded-lg border-2 text-center transition-all ${
+                              className={`p-3 tap-stable rounded-lg border-2 text-center transition-colors ${
                                 walkDuration === 60
-                                  ? 'border-slate-900 bg-slate-100 ring-1 ring-slate-900/10'
-                                  : 'border-slate-300 bg-white/70 hover:border-slate-400 hover:bg-white'
+                                  ? 'border-[#0d9483] bg-[#0d9483]/10 ring-1 ring-[#0d9483]/30'
+                                  : 'border-slate-200 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] hover:border-slate-300'
                               }`}
                             >
                               <p className="text-sm font-black text-slate-900">1 hora</p>
@@ -708,17 +708,17 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       )}
                       {!isAppointment && checkinDate && (
                         <div className="grid grid-cols-2 gap-2.5">
-                          <div className="bg-white/70 border border-slate-300 rounded-lg p-2.5 text-center">
-                            <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1 mb-1.5"><Clock className="w-2.5 h-2.5" /> Hora de Entrada</p>
+                          <div className="bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] border border-slate-300 rounded-lg p-2.5 text-center">
+                            <p className="text-[9px] font-bold uppercase text-slate-500 tracking-wider flex items-center justify-center gap-1 mb-1.5"><Clock className="w-2.5 h-2.5" /> Hora de Entrada</p>
                             <input type="time" value={checkinTime} onChange={e => setCheckinTime(e.target.value)}
                               className="w-full p-1.5 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm font-bold text-center focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10" />
-                            <p className="text-[9px] text-slate-400 mt-1">Indique a sua hora prevista</p>
+                            <p className="text-[9px] text-slate-500 mt-1">Indique a sua hora prevista</p>
                           </div>
-                          <div className="bg-white/70 border border-slate-300 rounded-lg p-2.5 text-center">
-                            <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1 mb-1.5"><Clock className="w-2.5 h-2.5" /> Hora de Saída</p>
+                          <div className="bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] border border-slate-300 rounded-lg p-2.5 text-center">
+                            <p className="text-[9px] font-bold uppercase text-slate-500 tracking-wider flex items-center justify-center gap-1 mb-1.5"><Clock className="w-2.5 h-2.5" /> Hora de Saída</p>
                             <input type="time" value={checkoutTime} onChange={e => setCheckoutTime(e.target.value)}
                               className="w-full p-1.5 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm font-bold text-center focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10" />
-                            <p className="text-[9px] text-slate-400 mt-1">Indique a sua hora prevista</p>
+                            <p className="text-[9px] text-slate-500 mt-1">Indique a sua hora prevista</p>
                           </div>
                         </div>
                       )}
@@ -763,7 +763,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                         >
-                          <CreditCard className="w-4 h-4 text-slate-400" />
+                          <CreditCard className="w-4 h-4 text-slate-500" />
                         </motion.div>
                         <span>A redirecionar para o pagamento seguro...</span>
                       </>
@@ -775,7 +775,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
               {/* STEP 3 — Resumo e Pagamento */}
               {step === 3 && !finalized && (
                 <div className="space-y-3">
-                  <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 space-y-3">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-[0_8px_24px_-14px_rgba(15,23,42,0.35)]">
                     {/* Hotel header */}
                     <div className="pb-3 border-b border-slate-100">
                       <p className="font-black text-slate-900 text-lg">{hotel.walker_name}</p>
@@ -839,10 +839,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             <button
                               type="button"
                               onClick={() => setTransportRequested(false)}
-                              className={`p-2.5 rounded-lg border-2 text-left transition-all ${
+                              className={`p-2.5 tap-stable rounded-lg border-2 text-left transition-colors ${
                                 !transportRequested
-                                  ? 'border-slate-900 bg-slate-100 ring-1 ring-slate-900/10'
-                                  : 'border-slate-300 bg-white/70 hover:border-slate-400 hover:bg-white'
+                                  ? 'border-[#0d9483] bg-[#0d9483]/10 ring-1 ring-[#0d9483]/30'
+                                  : 'border-slate-200 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] hover:border-slate-300'
                               }`}
                             >
                               <Home className="w-3.5 h-3.5 text-slate-600 mb-1" />
@@ -851,10 +851,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             <button
                               type="button"
                               onClick={() => setTransportRequested(true)}
-                              className={`p-2.5 rounded-lg border-2 text-left transition-all ${
+                              className={`p-2.5 tap-stable rounded-lg border-2 text-left transition-colors ${
                                 transportRequested
-                                  ? 'border-slate-900 bg-slate-100 ring-1 ring-slate-900/10'
-                                  : 'border-slate-300 bg-white/70 hover:border-slate-400 hover:bg-white'
+                                  ? 'border-[#0d9483] bg-[#0d9483]/10 ring-1 ring-[#0d9483]/30'
+                                  : 'border-slate-200 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] hover:border-slate-300'
                               }`}
                             >
                               <Truck className="w-3.5 h-3.5 text-blue-500 mb-1" />
@@ -878,10 +878,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                   <button
                                     type="button"
                                     onClick={() => setTransportType('pickup_only')}
-                                    className={`p-2.5 rounded-lg border-2 text-center transition-all ${
+                                    className={`p-2.5 tap-stable rounded-lg border-2 text-center transition-colors ${
                                       transportType === 'pickup_only'
-                                        ? 'border-slate-900 bg-slate-100 ring-1 ring-slate-900/10'
-                                        : 'border-slate-300 bg-white/70 hover:border-slate-400 hover:bg-white'
+                                        ? 'border-[#0d9483] bg-[#0d9483]/10 ring-1 ring-[#0d9483]/30'
+                                        : 'border-slate-200 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] hover:border-slate-300'
                                     }`}
                                   >
                                     <p className="text-[10px] font-bold text-slate-900">Só Ida</p>
@@ -890,10 +890,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                   <button
                                     type="button"
                                     onClick={() => setTransportType('dropoff_only')}
-                                    className={`p-2.5 rounded-lg border-2 text-center transition-all ${
+                                    className={`p-2.5 tap-stable rounded-lg border-2 text-center transition-colors ${
                                       transportType === 'dropoff_only'
-                                        ? 'border-slate-900 bg-slate-100 ring-1 ring-slate-900/10'
-                                        : 'border-slate-300 bg-white/70 hover:border-slate-400 hover:bg-white'
+                                        ? 'border-[#0d9483] bg-[#0d9483]/10 ring-1 ring-[#0d9483]/30'
+                                        : 'border-slate-200 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] hover:border-slate-300'
                                     }`}
                                   >
                                     <p className="text-[10px] font-bold text-slate-900">Só Volta</p>
@@ -902,17 +902,17 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                   <button
                                     type="button"
                                     onClick={() => setTransportType('round_trip')}
-                                    className={`p-2.5 rounded-lg border-2 text-center transition-all ${
+                                    className={`p-2.5 tap-stable rounded-lg border-2 text-center transition-colors ${
                                       transportType === 'round_trip'
-                                        ? 'border-slate-900 bg-slate-100 ring-1 ring-slate-900/10'
-                                        : 'border-slate-300 bg-white/70 hover:border-slate-400 hover:bg-white'
+                                        ? 'border-[#0d9483] bg-[#0d9483]/10 ring-1 ring-[#0d9483]/30'
+                                        : 'border-slate-200 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] hover:border-slate-300'
                                     }`}
                                   >
                                     <p className="text-[10px] font-bold text-slate-900">Ida e Volta</p>
                                     <p className="text-[9px] text-blue-500 font-semibold mt-0.5">+{transportPrice * 2}€/animal</p>
                                   </button>
                                 </div>
-                                <p className="text-[9px] text-slate-400 mt-1">
+                                <p className="text-[9px] text-slate-500 mt-1">
                                   {transportType === 'pickup_only' ? 'O hotel vai buscar o animal a sua casa' : transportType === 'dropoff_only' ? 'O hotel leva o animal de volta a sua casa' : 'O hotel recolhe e entrega o animal em casa'}
                                 </p>
                               </div>
@@ -921,7 +921,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                 value={transportAddress}
                                 onChange={(e) => setTransportAddress(e.target.value)}
                                 placeholder="Morada completa de recolha e entrega *"
-                                className="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors"
+                                className="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-500 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors"
                               />
                               <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-start gap-1.5">
                                 <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
@@ -970,7 +970,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         onChange={(e) => setSpecialRequests(e.target.value)}
                         placeholder="Restrições, preferências, etc."
                         rows={2}
-                        className="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
+                        className="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50/80 text-slate-900 text-sm placeholder:text-slate-500 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none transition-colors"
                       />
                     </div>
 
@@ -980,7 +980,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         <span className="text-slate-500">
                           {servicePrice}€ {isOvernight ? `× ${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}` : isWalk ? `/ ${walkDuration} min` : isAppointment ? '/ sessão' : '/ dia'} × {selectedDogs.length} {selectedDogs.length === 1 ? 'animal' : 'animais'}
                         </span>
-                        <span className={`font-bold ${promoDiscount > 0 ? "text-slate-400 line-through" : "text-slate-700"}`}>{baseAmount}€</span>
+                        <span className={`font-bold ${promoDiscount > 0 ? "text-slate-500 line-through" : "text-slate-700"}`}>{baseAmount}€</span>
                       </div>
                       {servicePromo && promoDiscount > 0 && (
                         <div className="flex justify-between text-xs">
@@ -1018,7 +1018,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         </div>
                       )}
                       {commissionBorneBy === 'client' && commissionRate > 0 && (
-                        <div className="flex justify-between text-[10px] text-slate-400">
+                        <div className="flex justify-between text-[10px] text-slate-500">
                           <span>Hotel recebe</span>
                           <span className="font-semibold">{hotelReceives}€</span>
                         </div>
@@ -1029,7 +1029,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                     <WalletPaymentOption useWallet={useWallet} onToggle={setUseWallet} amountToPay={totalAmount} />
 
                     {/* Total */}
-                    <div className="border border-slate-900 bg-slate-100 rounded-lg px-4 py-3.5 flex justify-between items-center">
+                    <div className="border-2 border-[#0d9483]/40 bg-[#0d9483]/8 rounded-lg px-4 py-3.5 flex justify-between items-center">
                       <p className="text-sm font-bold text-slate-900">Total — Pagamento único</p>
                       <span className="text-base font-black text-slate-900">{totalAmount}€</span>
                     </div>
@@ -1047,12 +1047,12 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
           step === 2 ||
           step === 3
         ) && (
-          <div className="px-5 pt-3 pb-5 bg-white/85 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+          <div className="px-5 pt-3 pb-5 bg-white border-t border-slate-200 shadow-[0_-6px_20px_-12px_rgba(15,23,42,0.25)]">
             {step === 0 && (
               <Button
                 onClick={() => setStep(1)}
                 disabled={selectedDogIds.length === 0}
-                className="w-full h-12 bg-black hover:bg-slate-800 text-white font-bold rounded-xl text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full h-12 bg-[#0d9483] hover:bg-[#0b7f72] text-white font-bold rounded-xl text-sm disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {selectedDogIds.length === 0
                   ? 'Selecione um animal'
@@ -1062,7 +1062,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             {step === 1 && (
               <Button
                 onClick={() => setStep(2)}
-                className="w-full h-12 bg-black hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
+                className="w-full h-12 bg-[#0d9483] hover:bg-[#0b7f72] text-white font-bold rounded-xl text-sm"
               >
                 Continuar
               </Button>
@@ -1071,7 +1071,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
               <Button
                 onClick={() => setStep(3)}
                 disabled={!checkinDate || (isOvernight ? !checkoutDate : false)}
-                className="w-full h-12 bg-black hover:bg-slate-800 text-white font-bold rounded-xl text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full h-12 bg-[#0d9483] hover:bg-[#0b7f72] text-white font-bold rounded-xl text-sm disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Ver Resumo
               </Button>
@@ -1081,7 +1081,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                 <Button
                   onClick={handleCreateBooking}
                   disabled={isCreating}
-                  className="w-full h-12 bg-black hover:bg-slate-800 text-white font-black rounded-xl text-base flex items-center justify-center gap-2 transition-all"
+                  className="w-full h-12 bg-[#0d9483] hover:bg-[#0b7f72] text-white font-black rounded-xl text-base flex items-center justify-center gap-2 transition-all"
                 >
                   {isCreating ? (
                     <motion.div

@@ -45,7 +45,7 @@ export default function WalkDetailsForm({ details, onChange }) {
               key={slot.value}
               onClick={() => onChange("walk_time", slot.value)}
               className={cn(
-                "flex flex-col items-center p-3 rounded-xl border-2 text-xs transition-all",
+                "tap-stable flex flex-col items-center p-3 rounded-xl border-2 text-xs transition-colors",
                 details.walk_time === slot.value
                   ? "border-[#0d9483] bg-[#0d9483]/12 text-[#0d9483] shadow-[0_8px_18px_-10px_rgba(13,148,131,0.65)]"
                   : "border-gray-200 bg-white text-gray-600 shadow-[0_2px_6px_-2px_rgba(15,23,42,0.12)] hover:border-gray-300"
@@ -71,7 +71,7 @@ export default function WalkDetailsForm({ details, onChange }) {
               key={d.value}
               onClick={() => onChange("duration_hours", d.value)}
               className={cn(
-                "py-3 rounded-xl border-2 text-sm font-semibold transition-all",
+                "tap-stable py-3 rounded-xl border-2 text-sm font-semibold transition-colors",
                 details.duration_hours === d.value
                   ? "border-[#0d9483] bg-[#0d9483] text-white shadow-[0_8px_18px_-10px_rgba(13,148,131,0.75)]"
                   : "border-gray-200 bg-white text-gray-700 shadow-[0_2px_6px_-2px_rgba(15,23,42,0.12)] hover:border-gray-300"

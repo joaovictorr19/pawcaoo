@@ -428,6 +428,15 @@
     image-rendering: crisp-edges;
   }
 
+  /* Cartões e opções de reserva: o toque não altera a escala.
+     A regra global de `active` encolhia o cartão do animal ao selecionar. */
+  .tap-stable,
+  .tap-stable:active,
+  .tap-stable:focus,
+  .tap-stable:focus-visible {
+    transform: none !important;
+  }
+
   /* Seal active background — uses CSS variable to bypass global button[style*="background"] override */
   .seal-active-bg {
     background-color: var(--seal-color, #0d9483) !important;

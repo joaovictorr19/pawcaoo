@@ -155,19 +155,19 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="max-h-[92vh] rounded-t-3xl focus:outline-none">
         {/* Header */}
-        <div className="px-5 pt-4 pb-4 border-b border-slate-200/70">
+        <div className="px-5 pt-4 pb-4 border-b border-slate-200 bg-white">
           <div className="flex items-center gap-3">
             {step > 0 ? (
               <button onClick={() => setStep(s => s - 1)} className="w-9 h-9 rounded-full border border-slate-200/80 bg-slate-900/[0.06] flex items-center justify-center shrink-0">
                 <ChevronLeft className="w-4 h-4 text-slate-700" />
               </button>
             ) : (
-              <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-full bg-[#0d9483] flex items-center justify-center shrink-0">
                 <CalendarDays className="w-4 h-4 text-white" />
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-slate-400 truncate">
+              <p className="text-[10px] uppercase tracking-[0.18em] font-bold text-slate-500 truncate">
                 {selectedService?.service_name || (walkerProfile.walker_name || walkerProfile.trainer_name)}
               </p>
               <h2 className="text-[22px] leading-tight font-black text-slate-900 tracking-tight truncate">{stepTitles[step]}</h2>
@@ -180,10 +180,10 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
           {/* Progress */}
           <div className="flex items-center gap-1.5 mt-3.5">
             {[0, 1, 2, 3, 4].map(s => (
-              <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-500 ${step >= s ? 'bg-blue-600' : 'bg-slate-900/10'}`} />
+              <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-500 ${step >= s ? 'bg-[#0d9483]' : 'bg-slate-900/10'}`} />
             ))}
           </div>
-          <p className="text-[10px] font-semibold text-slate-400 mt-2">Etapa {step + 1} de 5</p>
+          <p className="text-[10px] font-bold text-slate-500 mt-2">Etapa {step + 1} de 5</p>
         </div>
 
         <div className="overflow-y-auto flex-1 px-5 pt-4 pb-8">
@@ -205,8 +205,8 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                 </div>
               ) : (
                 <>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 mb-2">
-                    Quais animais vão? <span className="text-blue-500 normal-case font-medium tracking-normal">(pode selecionar mais de um)</span>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 mb-2">
+                    Quais animais vão? <span className="text-[#0d9483] normal-case font-medium tracking-normal">(pode selecionar mais de um)</span>
                   </p>
                   <AnimalSelectList
                     dogs={myDogs}
@@ -219,14 +219,14 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   />
                   <button
                     onClick={() => { onClose(); navigate(createPageUrl('EditAnimalProfile')); }}
-                    className="w-full py-3 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 text-sm font-medium hover:border-blue-300 hover:text-blue-500 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-3 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 text-sm font-medium hover:border-[#0d9483]/50 hover:text-[#0d9483] transition-colors flex items-center justify-center gap-2"
                   >
                     <PlusCircle className="w-4 h-4" /> Adicionar outro animal
                   </button>
                   {selectedDogIds.length > 0 && (
                     <Button
                       onClick={() => setStep(1)}
-                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-base mt-2"
+                      className="w-full h-12 bg-[#0d9483] hover:bg-[#0b7f72] text-white font-bold rounded-2xl text-base mt-2"
                     >
                       Continuar com {selectedDogIds.length} {selectedDogIds.length === 1 ? 'animal' : 'animais'} →
                     </Button>
@@ -247,15 +247,15 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                     <button
                       key={d}
                       onClick={() => { setSelectedDate(d); setStep(2); }}
-                      className={`py-3 rounded-2xl border-2 text-center transition-all active:scale-95 ${
-                        isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 bg-white/70 hover:border-blue-400'
+                      className={`py-3 rounded-2xl border-2 text-center transition-colors tap-stable ${
+                        isSelected ? 'border-[#0d9483] bg-[#0d9483] text-white' : 'border-slate-300 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] hover:border-[#0d9483]/50'
                       }`}
                     >
-                      <p className={`text-[9px] uppercase font-bold ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
+                      <p className={`text-[9px] uppercase font-bold ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>
                         {dateObj.toLocaleDateString('pt-PT', { weekday: 'short' })}
                       </p>
                       <p className={`text-xl font-black ${isSelected ? 'text-white' : 'text-slate-900'}`}>{dateObj.getDate()}</p>
-                      <p className={`text-[9px] ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
+                      <p className={`text-[9px] ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>
                         {dateObj.toLocaleDateString('pt-PT', { month: 'short' })}
                       </p>
                     </button>
@@ -277,8 +277,8 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                     <button
                       key={time}
                       onClick={() => setSelectedTime(time)}
-                      className={`py-2.5 rounded-xl border-2 text-sm font-bold transition-all active:scale-95 ${
-                        selectedTime === time ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-300 bg-white/70 text-slate-700 hover:border-blue-400'
+                      className={`py-2.5 rounded-xl border-2 text-sm font-bold transition-colors tap-stable ${
+                        selectedTime === time ? 'border-[#0d9483] bg-[#0d9483] text-white' : 'border-slate-300 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] text-slate-700 hover:border-[#0d9483]/50'
                       }`}
                     >
                       {time}
@@ -294,8 +294,8 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                     <button
                       key={d.value}
                       onClick={() => setDuration(d.value)}
-                      className={`px-4 py-2.5 rounded-xl border-2 text-sm font-bold transition-all active:scale-95 ${
-                        duration === d.value ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-300 bg-white/70 text-slate-700 hover:border-blue-400'
+                      className={`px-4 py-2.5 rounded-xl border-2 text-sm font-bold transition-colors tap-stable ${
+                        duration === d.value ? 'border-[#0d9483] bg-[#0d9483] text-white' : 'border-slate-300 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] text-slate-700 hover:border-[#0d9483]/50'
                       }`}
                     >
                       {d.label}
@@ -304,7 +304,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                 </div>
               </div>
 
-              <Button onClick={() => setStep(3)} className="w-full h-13 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-base">
+              <Button onClick={() => setStep(3)} className="w-full h-13 bg-[#0d9483] hover:bg-[#0b7f72] text-white font-bold rounded-2xl text-base">
                 Continuar →
               </Button>
             </div>
@@ -317,8 +317,8 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                 <button
                   key={option.id}
                   onClick={() => setPickupMethod(option.id)}
-                  className={`w-full p-4 rounded-2xl border-2 transition-all text-left active:scale-[0.98] ${
-                    pickupMethod === option.id ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-500/20' : 'border-slate-300 bg-white/70'
+                  className={`w-full p-4 rounded-2xl border-2 transition-colors text-left tap-stable ${
+                    pickupMethod === option.id ? 'border-[#0d9483] bg-[#0d9483]/8 ring-1 ring-[#0d9483]/25' : 'border-slate-300 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -328,7 +328,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                       <p className="text-xs text-slate-500">{option.desc}</p>
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                      pickupMethod === option.id ? 'border-blue-500 bg-blue-500' : 'border-slate-300'
+                      pickupMethod === option.id ? 'border-[#0d9483] bg-[#0d9483]' : 'border-slate-300'
                     }`}>
                       {pickupMethod === option.id && <div className="w-2 h-2 rounded-full bg-white" />}
                     </div>
@@ -336,7 +336,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                 </button>
               ))}
 
-              <Button onClick={() => setStep(4)} className="w-full h-13 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-base mt-2">
+              <Button onClick={() => setStep(4)} className="w-full h-13 bg-[#0d9483] hover:bg-[#0b7f72] text-white font-bold rounded-2xl text-base mt-2">
                 Ver Resumo →
               </Button>
             </div>
@@ -345,7 +345,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
           {/* STEP 4 — Resumo */}
           {step === 4 && (
             <div className="space-y-4">
-              <div className="bg-white/80 rounded-2xl p-4 space-y-3 border border-slate-200/80">
+              <div className="bg-white rounded-2xl p-4 space-y-3 border border-slate-200 shadow-[0_8px_24px_-14px_rgba(15,23,42,0.35)]">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Profissional</span>
                   <span className="font-bold text-slate-900">{walkerProfile.walker_name || walkerProfile.trainer_name}</span>
@@ -354,7 +354,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   <span className="text-slate-500">{selectedDogs.length > 1 ? 'Animais' : 'Animal'}</span>
                   <span className="font-bold text-slate-900 text-right">
                     {selectedDogs.map(d => d.dog_name).join(', ')}
-                    {selectedDogs.length > 1 && <span className="block text-xs text-blue-600 font-semibold">({selectedDogs.length} animais)</span>}
+                    {selectedDogs.length > 1 && <span className="block text-xs text-[#0d9483] font-semibold">({selectedDogs.length} animais)</span>}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -393,10 +393,10 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   <p className="text-xs text-amber-600 font-medium -mt-1">
                     Por segurança, o telefone do profissional fica oculto até o pedido ser aceite e o pagamento concluído.
                   </p>
-                  <div className="rounded-xl border border-green-100 bg-green-50 p-3 flex items-start justify-between gap-3">
+                  <div className="rounded-xl border border-[#0d9483]/20 bg-[#0d9483]/8 p-3 flex items-start justify-between gap-3">
                     <div className="pr-2">
                       <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <LocateFixed className="w-4 h-4 text-green-600" />
+                        <LocateFixed className="w-4 h-4 text-[#0d9483]" />
                         Acompanhamento de localização por WhatsApp
                       </p>
                       <p className="text-xs text-slate-600 mt-1">Marque esta opção se quiser receber a localização da viagem pelo WhatsApp.</p>
@@ -423,8 +423,8 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                     <span className="font-bold text-orange-600">{platformFee}€</span>
                   </div>
                 </div>
-                <div className="bg-blue-600 rounded-xl px-4 py-3 flex justify-between items-center">
-                  <span className="text-sm font-bold text-blue-100">Total</span>
+                <div className="bg-[#0d9483] rounded-xl px-4 py-3 flex justify-between items-center">
+                  <span className="text-sm font-bold text-white/80">Total</span>
                   <span className="text-2xl font-black text-white">{totalAmount}€</span>
                 </div>
               </div>
@@ -432,12 +432,12 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
               <Button
                 onClick={handleCreateBooking}
                 disabled={isCreating}
-                className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl text-lg shadow-lg shadow-green-200"
+                className="w-full h-14 bg-[#0d9483] hover:bg-[#0b7f72] text-white font-black rounded-2xl text-lg shadow-lg shadow-[#0d9483]/25"
               >
                 {isCreating ? '⏳ A redirecionar para pagamento...' : '💳 Confirmar e Pagar'}
               </Button>
 
-              <p className="text-center text-xs text-slate-400">
+              <p className="text-center text-xs text-slate-500">
                 Será redirecionado para o Stripe para pagamento seguro.
               </p>
               {!pickupAddress && (
