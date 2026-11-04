@@ -39,7 +39,7 @@ export default function LocationInput({ address, onAddressChange, onCoordsChange
   return (
     <div>
       <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-        <MapPin className="w-4 h-4 text-green-600" />
+        <MapPin className="w-4 h-4 text-[#0d9483]" />
         {label}
       </label>
       <div className="relative">
@@ -48,12 +48,12 @@ export default function LocationInput({ address, onAddressChange, onCoordsChange
           value={address}
           onChange={(e) => onAddressChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 placeholder-gray-400"
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-[#0d9483]/40 placeholder-gray-400"
         />
         <button
           onClick={handleGPS}
           disabled={locating}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600 hover:text-green-700 disabled:opacity-50"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0d9483] hover:text-[#0b7f72] disabled:opacity-50"
           title="Usar localização atual"
         >
           {locating ? (

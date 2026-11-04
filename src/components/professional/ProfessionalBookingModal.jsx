@@ -4,6 +4,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Clock, MapPin, CalendarDays, X, ChevronLeft, Phone, LocateFixed, PlusCircle, Check } from 'lucide-react';
+import AnimalSelectList from '@/components/booking/AnimalSelectList';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -207,39 +208,15 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 mb-2">
                     Quais animais vão? <span className="text-blue-500 normal-case font-medium tracking-normal">(pode selecionar mais de um)</span>
                   </p>
-                  <div className="space-y-2">
-                    {myDogs.map(dog => {
-                      const isSelected = selectedDogIds.includes(dog.id);
-                      return (
-                        <button
-                          key={dog.id}
-                          onClick={() => {
-                            setSelectedDogIds(prev =>
-                              isSelected ? prev.filter(id => id !== dog.id) : [...prev, dog.id]
-                            );
-                          }}
-                          className={`w-full p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.98] flex items-center gap-3 ${
-                            isSelected ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-500/20' : 'border-slate-300 bg-white/70 hover:border-blue-400 hover:bg-white'
-                          }`}
-                        >
-                          {dog.photo_url ? (
-                            <img src={dog.photo_url} alt={dog.dog_name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                          ) : (
-                            <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0">🐾</div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-slate-900">{dog.dog_name}</p>
-                            <p className="text-xs text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : dog.size === 'extra_large' ? 'XL' : dog.size}</p>
-                          </div>
-                          <div className={`w-5 h-5 shrink-0 rounded-[6px] border-2 flex items-center justify-center transition-colors ${
-                            isSelected ? 'border-blue-600 bg-blue-600' : 'border-slate-300 bg-white'
-                          }`}>
-                            {isSelected && <Check className="w-3 h-3 text-white stroke-[3.5]" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <AnimalSelectList
+                    dogs={myDogs}
+                    selectedIds={selectedDogIds}
+                    onToggle={(dog) => setSelectedDogIds(prev =>
+                      prev.includes(dog.id)
+                        ? prev.filter(id => id !== dog.id)
+                        : [...prev, dog.id]
+                    )}
+                  />
                   <button
                     onClick={() => { onClose(); navigate(createPageUrl('EditAnimalProfile')); }}
                     className="w-full py-3 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 text-sm font-medium hover:border-blue-300 hover:text-blue-500 transition-colors flex items-center justify-center gap-2"

@@ -21,7 +21,7 @@ export default function WalkDetailsForm({ details, onChange }) {
       {/* Date */}
       <div>
         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-          <Calendar className="w-4 h-4 text-green-600" />
+          <Calendar className="w-4 h-4 text-[#0d9483]" />
           Data do Passeio
         </label>
         <input
@@ -29,14 +29,14 @@ export default function WalkDetailsForm({ details, onChange }) {
           value={details.walk_date}
           min={new Date().toISOString().split("T")[0]}
           onChange={(e) => onChange("walk_date", e.target.value)}
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0d9483]/40"
         />
       </div>
 
       {/* Time slot */}
       <div>
         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-          <Clock className="w-4 h-4 text-green-600" />
+          <Clock className="w-4 h-4 text-[#0d9483]" />
           Período Preferido
         </label>
         <div className="grid grid-cols-3 gap-2">
@@ -47,7 +47,7 @@ export default function WalkDetailsForm({ details, onChange }) {
               className={cn(
                 "flex flex-col items-center p-3 rounded-xl border-2 text-xs transition-all",
                 details.walk_time === slot.value
-                  ? "border-green-500 bg-green-50 text-green-700"
+                  ? "border-[#0d9483] bg-[#0d9483]/5 text-[#0d9483]"
                   : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
               )}
             >
@@ -62,7 +62,7 @@ export default function WalkDetailsForm({ details, onChange }) {
       {/* Duration */}
       <div>
         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-          <Clock className="w-4 h-4 text-green-600" />
+          <Clock className="w-4 h-4 text-[#0d9483]" />
           Duração
         </label>
         <div className="grid grid-cols-4 gap-2">
@@ -73,7 +73,7 @@ export default function WalkDetailsForm({ details, onChange }) {
               className={cn(
                 "py-3 rounded-xl border-2 text-sm font-semibold transition-all",
                 details.duration_hours === d.value
-                  ? "border-green-500 bg-green-500 text-white"
+                  ? "border-[#0d9483] bg-[#0d9483] text-white"
                   : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
               )}
             >
@@ -86,7 +86,7 @@ export default function WalkDetailsForm({ details, onChange }) {
       {/* Notes */}
       <div>
         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-          <FileText className="w-4 h-4 text-green-600" />
+          <FileText className="w-4 h-4 text-[#0d9483]" />
           Notas Especiais
           <span className="text-gray-400 font-normal text-xs">(opcional)</span>
         </label>
@@ -95,7 +95,7 @@ export default function WalkDetailsForm({ details, onChange }) {
           onChange={(e) => onChange("special_notes", e.target.value)}
           placeholder="Ex: O Rex é tímido com outros cães, prefere parques mais tranquilos..."
           rows={3}
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-400 placeholder-gray-400"
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#0d9483]/40 placeholder-gray-400"
         />
       </div>
     </div>

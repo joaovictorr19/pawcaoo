@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { getEffectiveCommissionRate, getCommissionBearer } from '@/utils/commission';
 import HotelRangeCalendar from '@/components/hotel/HotelRangeCalendar';
+import AnimalSelectList from '@/components/booking/AnimalSelectList';
 import WalletPaymentOption from '@/components/wallet/WalletPaymentOption';
 import usePartnerPromotions from '@/hooks/usePartnerPromotions';
 import { freePickupState, promoDiscountAmount } from '@/lib/promotions';
@@ -355,54 +356,25 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           </span>
                         )}
                       </div>
-                      <div className="rounded-2xl border border-slate-200/80 bg-white/70 overflow-hidden divide-y divide-slate-200/70">
-                        {myDogs.map(dog => {
-                          const isSelected = selectedDogIds.includes(dog.id);
-                          return (
-                            <motion.button
-                              key={dog.id}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => {
-                                if (isSelected) {
-                                  setSelectedDogIds(prev => prev.filter(id => id !== dog.id));
-                                } else {
-                                  setSelectedDogIds(prev => [...prev, dog.id]);
-                                  setDogCare(prev => ({
-                                    ...prev,
-                                    [dog.id]: {
-                                      diet: prev[dog.id]?.diet || '',
-                                      medications: dog.medical_conditions || '',
-                                      routine: prev[dog.id]?.routine || '',
-                                    }
-                                  }));
-                                }
-                              }}
-                              className={`w-full px-3 py-3 rounded-none text-left transition-colors flex items-center gap-3 ${
-                                isSelected
-                                  ? 'bg-slate-900/[0.06]'
-                                  : 'bg-transparent hover:bg-white'
-                              }`}
-                            >
-                              {dog.photo_url ? (
-                                <img src={dog.photo_url} alt={dog.dog_name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-                              ) : (
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center flex-shrink-0">
-                                  <PawPrint className="w-4 h-4 text-orange-400" />
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <p className="font-bold text-slate-900 text-sm">{dog.dog_name}</p>
-                                <p className="text-[11px] text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : 'XL'}</p>
-                              </div>
-                              <div className={`w-5 h-5 shrink-0 rounded-[6px] border-2 flex items-center justify-center transition-colors ${
-                                isSelected ? 'border-slate-900 bg-slate-900' : 'border-slate-300 bg-white'
-                              }`}>
-                                {isSelected && <Check className="w-3 h-3 text-white stroke-[3.5]" />}
-                              </div>
-                            </motion.button>
-                          );
-                        })}
-                      </div>
+                      <AnimalSelectList
+                        dogs={myDogs}
+                        selectedIds={selectedDogIds}
+                        onToggle={(dog) => {
+                          if (selectedDogIds.includes(dog.id)) {
+                            setSelectedDogIds(prev => prev.filter(id => id !== dog.id));
+                          } else {
+                            setSelectedDogIds(prev => [...prev, dog.id]);
+                            setDogCare(prev => ({
+                              ...prev,
+                              [dog.id]: {
+                                diet: prev[dog.id]?.diet || '',
+                                medications: dog.medical_conditions || '',
+                                routine: prev[dog.id]?.routine || '',
+                              }
+                            }));
+                          }
+                        }}
+                      />
                     </>
                   )}
                 </div>

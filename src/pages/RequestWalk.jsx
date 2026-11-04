@@ -209,9 +209,9 @@ export default function RequestWalk() {
   // Success screen
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#0d9483]/10 to-[#0d9483]/5 flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-white rounded-3xl p-8 shadow-xl max-w-sm w-full">
-          <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          <CheckCircle2 className="w-16 h-16 text-[#0d9483] mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Pedido Enviado!</h2>
           <p className="text-gray-600 mb-6 text-sm leading-relaxed">
             O teu pedido de passeio foi submetido com sucesso. Serás notificado assim que um Dog Walker aceitar.
@@ -219,7 +219,7 @@ export default function RequestWalk() {
           <div className="space-y-3">
             <button
               onClick={() => navigate(createPageUrl("MyBookings"))}
-              className="w-full py-3 bg-green-500 text-white font-bold rounded-2xl hover:bg-green-600 transition-all"
+              className="w-full py-3 bg-[#0d9483] text-white font-bold rounded-2xl hover:bg-[#0b7f72] transition-all"
             >
               Ver as Minhas Reservas
             </button>
@@ -248,7 +248,7 @@ export default function RequestWalk() {
           </button>
           <div className="flex-1">
             <h1 className="font-bold text-gray-900 text-base flex items-center gap-2">
-              <PawPrint className="w-4 h-4 text-green-500" />
+              <PawPrint className="w-4 h-4 text-[#0d9483]" />
               Solicitar Passeio
             </h1>
           </div>
@@ -261,18 +261,18 @@ export default function RequestWalk() {
               <React.Fragment key={s.id}>
                 <div className="flex flex-col items-center flex-1">
                   <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-all ${
-                    step > s.id ? "bg-green-500 text-white" :
-                    step === s.id ? "bg-green-500 text-white shadow-md shadow-green-200" :
-                    "bg-gray-200 text-gray-500"
+                    step > s.id ? "bg-[#0d9483] text-white" :
+                    step === s.id ? "bg-[#0d9483] text-white shadow-md shadow-[#0d9483]/25" :
+                    "bg-slate-200 text-slate-500"
                   }`}>
                     {step > s.id ? "✓" : s.id}
                   </div>
-                  <span className={`text-[10px] mt-0.5 font-medium ${step >= s.id ? "text-green-600" : "text-gray-400"}`}>
+                  <span className={`text-[10px] mt-0.5 font-semibold ${step >= s.id ? "text-[#0d9483]" : "text-slate-400"}`}>
                     {s.label}
                   </span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`h-0.5 flex-1 mb-4 rounded-full transition-all ${step > s.id ? "bg-green-400" : "bg-gray-200"}`} />
+                  <div className={`h-0.5 flex-1 mb-4 rounded-full transition-all ${step > s.id ? "bg-[#0d9483]/50" : "bg-slate-200"}`} />
                 )}
               </React.Fragment>
             ))}
@@ -294,13 +294,6 @@ export default function RequestWalk() {
               selectedDogIds={selectedDogs.map((d) => d.id)}
               onToggle={toggleDog}
             />
-            {selectedDogs.length > 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-700 font-medium">
-                {selectedDogs.length === 1
-                  ? `✓ ${selectedDogs[0].dog_name} selecionado`
-                  : `✓ ${selectedDogs.length} animais selecionados`}
-              </div>
-            )}
           </div>
         )}
 
@@ -365,7 +358,7 @@ export default function RequestWalk() {
           <button
             onClick={() => setStep(step + (immediateMode && step === 2 ? 2 : 1))}
             disabled={step === 1 && selectedDogs.length === 0}
-            className="w-full py-4 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-2xl transition-all shadow-lg shadow-green-100"
+            className="w-full py-4 bg-[#0d9483] hover:bg-[#0b7f72] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-2xl transition-all shadow-lg shadow-[#0d9483]/25"
           >
             Continuar →
           </button>
