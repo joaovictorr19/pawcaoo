@@ -4,9 +4,16 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LegacyCard from "@/components/gamification/LegacyCard";
 import LegacyCardCollection from "@/components/gamification/LegacyCardCollection";
+import LegacyShareButton from "@/components/gamification/LegacyShareButton";
 import { useLegacyCards } from "@/hooks/useLegacyCards";
 
 const spring = { type: "spring", stiffness: 240, damping: 28, mass: 0.9 };
+
+const slide = {
+  enter: (direction) => ({ opacity: 0, x: direction * 110, scale: 0.94 }),
+  center: { opacity: 1, x: 0, scale: 1 },
+  exit: (direction) => ({ opacity: 0, x: direction * -110, scale: 0.94 }),
+};
 
 /** As Provações: cartas colecionáveis com progresso real da conta. */
 export default function LegacyProvingSection({ user, userProfile }) {
@@ -16,17 +23,25 @@ export default function LegacyProvingSection({ user, userProfile }) {
   });
 
   const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [flippedId, setFlippedId] = useState(null);
 
   const total = cards.length;
+  const reduceMotion =
+    typeof window !== "undefined" &&
+    !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
   useEffect(() => {
     if (index > total - 1) setIndex(0);
   }, [total, index]);
 
-  const goTo = (next) => {
+  const goTo = (next, forcedDirection) => {
+    if (!total) return;
+    const wrapped = ((next % total) + total) % total;
+    if (wrapped === index) return;
     setFlippedId(null);
-    setIndex(((next % total) + total) % total);
+    setDirection(forcedDirection ?? (next > index ? 1 : -1));
+    setIndex(wrapped);
   };
 
   const at = (offset) => cards[((index + offset) % total + total) % total];
@@ -59,45 +74,54 @@ export default function LegacyProvingSection({ user, userProfile }) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => goTo(index - 1)}
+              onClick={() => goTo(index - 1, -1)}
               aria-label="Carta anterior"
-              className="absolute left-0 top-1/2 z-30 h-11 w-11 -translate-y-1/2 rounded-full border border-amber-500/30 bg-black/60 text-amber-400 hover:bg-amber-500/20 md:h-12 md:w-12"
+              className="absolute left-0 top-1/2 z-30 hidden h-12 w-12 -translate-y-1/2 rounded-full border border-amber-500/30 bg-black/60 text-amber-400 hover:bg-amber-500/20 md:inline-flex"
             >
-              <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
+              <ChevronLeft className="h-6 w-6" />
             </Button>
 
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => goTo(index + 1)}
+              onClick={() => goTo(index + 1, 1)}
               aria-label="Carta seguinte"
-              className="absolute right-0 top-1/2 z-30 h-11 w-11 -translate-y-1/2 rounded-full border border-amber-500/30 bg-black/60 text-amber-400 hover:bg-amber-500/20 md:h-12 md:w-12"
+              className="absolute right-0 top-1/2 z-30 hidden h-12 w-12 -translate-y-1/2 rounded-full border border-amber-500/30 bg-black/60 text-amber-400 hover:bg-amber-500/20 md:inline-flex"
             >
-              <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
+              <ChevronRight className="h-6 w-6" />
             </Button>
 
-            <div className="flex items-center justify-center gap-4 px-12 py-4 md:gap-6 md:px-20 md:py-6">
+            <div className="flex items-center justify-center gap-4 px-2 py-4 md:gap-6 md:px-20 md:py-6">
               <motion.div
                 key={`left-${left?.id}`}
                 className="hidden shrink-0 md:block"
                 initial={{ opacity: 0, x: -26, rotate: -16, scale: 0.72 }}
                 animate={{ opacity: 0.5, x: 0, rotate: -9, scale: 0.82 }}
                 transition={spring}
-                onClick={() => goTo(index - 1)}
+                onClick={() => goTo(index - 1, -1)}
                 aria-hidden="true"
               >
                 {left && <LegacyCard card={left} flipped={false} />}
               </motion.div>
 
-              <AnimatePresence mode="wait" initial={false}>
+              <AnimatePresence mode="wait" initial={false} custom={direction}>
                 {center && (
                   <motion.div
                     key={center.id}
-                    initial={{ opacity: 0, y: 22, scale: 0.92 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -18, scale: 0.95 }}
+                    custom={direction}
+                    variants={slide}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
                     transition={spring}
-                    className="shrink-0"
+                    drag={reduceMotion ? false : "x"}
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.22}
+                    onDragEnd={(_, info) => {
+                      if (info.offset.x < -55 || info.velocity.x < -420) goTo(index + 1, 1);
+                      else if (info.offset.x > 55 || info.velocity.x > 420) goTo(index - 1, -1);
+                    }}
+                    className="shrink-0 touch-pan-y"
                   >
                     <LegacyCard
                       card={center}
@@ -114,29 +138,56 @@ export default function LegacyProvingSection({ user, userProfile }) {
                 initial={{ opacity: 0, x: 26, rotate: 16, scale: 0.72 }}
                 animate={{ opacity: 0.5, x: 0, rotate: 9, scale: 0.82 }}
                 transition={spring}
-                onClick={() => goTo(index + 1)}
+                onClick={() => goTo(index + 1, 1)}
                 aria-hidden="true"
               >
                 {right && <LegacyCard card={right} flipped={false} />}
               </motion.div>
             </div>
 
-            <div className="mt-4 flex items-center justify-center gap-1.5">
-              {cards.map((card, dotIndex) => (
-                <button
-                  key={card.id}
-                  onClick={() => goTo(dotIndex)}
-                  aria-label={`Ir para ${card.title}`}
-                  aria-current={dotIndex === index}
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                    dotIndex === index
-                      ? "w-7 bg-amber-400"
-                      : card.earned
-                        ? "w-1.5 bg-amber-500/50"
-                        : "w-1.5 bg-neutral-700 hover:bg-neutral-600"
-                  }`}
-                />
-              ))}
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => goTo(index - 1, -1)}
+                aria-label="Carta anterior"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-amber-500/30 bg-black/60 text-amber-400 active:scale-95 md:hidden"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+
+              <div className="flex flex-1 items-center justify-center gap-1.5">
+                {cards.map((card, dotIndex) => (
+                  <button
+                    key={card.id}
+                    onClick={() => goTo(dotIndex, dotIndex > index ? 1 : -1)}
+                    aria-label={`Ir para ${card.title}`}
+                    aria-current={dotIndex === index}
+                    className={`h-1.5 rounded-full transition-all duration-500 ${
+                      dotIndex === index
+                        ? "w-7 bg-amber-400"
+                        : card.earned
+                          ? "w-1.5 bg-amber-500/50"
+                          : "w-1.5 bg-neutral-700 hover:bg-neutral-600"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => goTo(index + 1, 1)}
+                aria-label="Carta seguinte"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-amber-500/30 bg-black/60 text-amber-400 active:scale-95 md:hidden"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-5 flex flex-col items-center gap-2">
+              <LegacyShareButton card={center} />
+              <p className="text-[10px] uppercase tracking-[0.18em] text-neutral-600 md:hidden">
+                Desliza a carta para o lado
+              </p>
             </div>
           </div>
         )}
