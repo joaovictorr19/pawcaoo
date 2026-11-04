@@ -70,7 +70,7 @@ export default function LegacyProvingSection({ user, userProfile }) {
             A revelar as cartas…
           </div>
         ) : (
-          <div className="relative">
+          <div className="relative overflow-x-clip">
             <Button
               variant="ghost"
               size="icon"
@@ -91,7 +91,7 @@ export default function LegacyProvingSection({ user, userProfile }) {
               <ChevronRight className="h-6 w-6" />
             </Button>
 
-            <div className="flex items-center justify-center gap-4 px-2 py-4 md:gap-6 md:px-20 md:py-6">
+            <div className="flex w-full items-center justify-center gap-4 py-3 md:gap-6 md:px-20 md:py-6">
               <motion.div
                 key={`left-${left?.id}`}
                 className="hidden shrink-0 md:block"
@@ -121,7 +121,8 @@ export default function LegacyProvingSection({ user, userProfile }) {
                       if (info.offset.x < -55 || info.velocity.x < -420) goTo(index + 1, 1);
                       else if (info.offset.x > 55 || info.velocity.x > 420) goTo(index - 1, -1);
                     }}
-                    className="shrink-0 touch-pan-y"
+                    className="mx-auto shrink-0 touch-pan-y"
+                    style={{ "--lc-w": "clamp(200px, 62vw, 250px)" }}
                   >
                     <LegacyCard
                       card={center}
@@ -145,42 +146,50 @@ export default function LegacyProvingSection({ user, userProfile }) {
               </motion.div>
             </div>
 
-            <div className="mt-4 flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => goTo(index - 1, -1)}
-                aria-label="Carta anterior"
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-amber-500/30 bg-black/60 text-amber-400 active:scale-95 md:hidden"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
+            {/* Controlos compactos no telemóvel */}
+            <div className="mt-3 flex items-center justify-center md:hidden">
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-black/45 px-1.5 py-1">
+                <button
+                  type="button"
+                  onClick={() => goTo(index - 1, -1)}
+                  aria-label="Carta anterior"
+                  className="grid h-8 w-8 min-h-0 min-w-0 place-items-center rounded-full text-amber-400 active:scale-90"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
 
-              <div className="flex flex-1 items-center justify-center gap-1.5">
-                {cards.map((card, dotIndex) => (
-                  <button
-                    key={card.id}
-                    onClick={() => goTo(dotIndex, dotIndex > index ? 1 : -1)}
-                    aria-label={`Ir para ${card.title}`}
-                    aria-current={dotIndex === index}
-                    className={`h-1.5 rounded-full transition-all duration-500 ${
-                      dotIndex === index
-                        ? "w-7 bg-amber-400"
-                        : card.earned
-                          ? "w-1.5 bg-amber-500/50"
-                          : "w-1.5 bg-neutral-700 hover:bg-neutral-600"
-                    }`}
-                  />
-                ))}
+                <span className="min-w-[44px] text-center text-[11px] font-bold tabular-nums text-amber-300">
+                  {index + 1}/{total}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => goTo(index + 1, 1)}
+                  aria-label="Carta seguinte"
+                  className="grid h-8 w-8 min-h-0 min-w-0 place-items-center rounded-full text-amber-400 active:scale-90"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
+            </div>
 
-              <button
-                type="button"
-                onClick={() => goTo(index + 1, 1)}
-                aria-label="Carta seguinte"
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-amber-500/30 bg-black/60 text-amber-400 active:scale-95 md:hidden"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
+            {/* Pontos de navegação no desktop */}
+            <div className="mt-4 hidden items-center justify-center gap-1.5 md:flex">
+              {cards.map((card, dotIndex) => (
+                <button
+                  key={card.id}
+                  onClick={() => goTo(dotIndex, dotIndex > index ? 1 : -1)}
+                  aria-label={`Ir para ${card.title}`}
+                  aria-current={dotIndex === index}
+                  className={`h-1.5 min-h-0 min-w-0 rounded-full p-0 transition-all duration-500 ${
+                    dotIndex === index
+                      ? "w-7 bg-amber-400"
+                      : card.earned
+                        ? "w-1.5 bg-amber-500/50"
+                        : "w-1.5 bg-neutral-700 hover:bg-neutral-600"
+                  }`}
+                />
+              ))}
             </div>
 
             <div className="mt-5 flex flex-col items-center gap-2">
