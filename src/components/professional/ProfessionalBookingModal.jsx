@@ -214,7 +214,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                             );
                           }}
                           className={`w-full p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.98] flex items-center gap-3 ${
-                            isSelected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'
+                            isSelected ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-500/20' : 'border-slate-300 bg-white/70 hover:border-blue-400 hover:bg-white'
                           }`}
                         >
                           {dog.photo_url ? (
@@ -266,7 +266,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                       key={d}
                       onClick={() => { setSelectedDate(d); setStep(2); }}
                       className={`py-3 rounded-2xl border-2 text-center transition-all active:scale-95 ${
-                        isSelected ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-200 bg-white hover:border-blue-300'
+                        isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 bg-white/70 hover:border-blue-400'
                       }`}
                     >
                       <p className={`text-[9px] uppercase font-bold ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
@@ -296,7 +296,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                       key={time}
                       onClick={() => setSelectedTime(time)}
                       className={`py-2.5 rounded-xl border-2 text-sm font-bold transition-all active:scale-95 ${
-                        selectedTime === time ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-200 text-slate-700'
+                        selectedTime === time ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-300 bg-white/70 text-slate-700 hover:border-blue-400'
                       }`}
                     >
                       {time}
@@ -313,7 +313,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                       key={d.value}
                       onClick={() => setDuration(d.value)}
                       className={`px-4 py-2.5 rounded-xl border-2 text-sm font-bold transition-all active:scale-95 ${
-                        duration === d.value ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-200 text-slate-700'
+                        duration === d.value ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-300 bg-white/70 text-slate-700 hover:border-blue-400'
                       }`}
                     >
                       {d.label}
@@ -336,7 +336,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   key={option.id}
                   onClick={() => setPickupMethod(option.id)}
                   className={`w-full p-4 rounded-2xl border-2 transition-all text-left active:scale-[0.98] ${
-                    pickupMethod === option.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200'
+                    pickupMethod === option.id ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-500/20' : 'border-slate-300 bg-white/70'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -363,7 +363,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
           {/* STEP 4 — Resumo */}
           {step === 4 && (
             <div className="space-y-4">
-              <div className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
+              <div className="bg-white/80 rounded-2xl p-4 space-y-3 border border-slate-200/80">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Profissional</span>
                   <span className="font-bold text-slate-900">{walkerProfile.walker_name || walkerProfile.trainer_name}</span>
