@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2, Utensils, Pill, Repeat, Calendar, Sparkles, Home, Truck, AlertCircle } from 'lucide-react';
+import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2, Check, Utensils, Pill, Repeat, Calendar, Sparkles, Home, Truck, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
@@ -377,7 +377,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                   }));
                                 }
                               }}
-                              className={`w-full px-3 py-3 rounded-lg text-left transition-all flex items-center gap-3 ${
+                              className={`w-full px-3 py-3 rounded-none text-left transition-colors flex items-center gap-3 ${
                                 isSelected
                                   ? 'bg-slate-900/[0.06]'
                                   : 'bg-transparent hover:bg-white'
@@ -394,10 +394,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                 <p className="font-bold text-slate-900 text-sm">{dog.dog_name}</p>
                                 <p className="text-[11px] text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : 'XL'}</p>
                               </div>
-                              <div className={`w-5 h-5 rounded-[4px] border-2 flex-shrink-0 flex items-center justify-center transition-all ${
-                                isSelected ? 'border-black bg-black' : 'border-slate-400 bg-white'
+                              <div className={`w-5 h-5 shrink-0 rounded-[6px] border-2 flex items-center justify-center transition-colors ${
+                                isSelected ? 'border-slate-900 bg-slate-900' : 'border-slate-300 bg-white'
                               }`}>
-                                {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                {isSelected && <Check className="w-3 h-3 text-white stroke-[3.5]" />}
                               </div>
                             </motion.button>
                           );
