@@ -259,51 +259,53 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="max-h-[92vh] rounded-t-[1.25rem] bg-white focus:outline-none flex flex-col">
         {/* Header */}
-        <div className="relative px-5 pt-5 pb-4 bg-white/85 backdrop-blur-md border-b border-slate-200/70">
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] text-slate-900 uppercase tracking-[0.15em] font-bold">
-              {hotel.walker_name} · {selectedService.service_name}
-            </p>
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center"
-            >
-              <X className="w-5 h-5 text-slate-900" />
-            </motion.button>
-          </div>
-
-          <div className="relative flex items-center justify-center mt-1 h-10">
-            {step > 0 && !finalized && (
+        <div className="px-5 pt-4 pb-4 border-b border-slate-200/70">
+          <div className="flex items-center gap-3">
+            {step > 0 && !finalized ? (
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setStep(s => s - 1)}
-                className="absolute left-0 w-9 h-9 rounded-lg border border-slate-300 bg-white flex items-center justify-center"
+                className="w-9 h-9 rounded-full border border-slate-200/80 bg-slate-900/[0.06] flex items-center justify-center shrink-0"
               >
                 <ChevronLeft className="w-4 h-4 text-slate-900" />
               </motion.button>
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center shrink-0">
+                <PawPrint className="w-4 h-4 text-white" />
+              </div>
             )}
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">{steps[step].title}</h2>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-slate-400 truncate">
+                {hotel.walker_name} · {selectedService.service_name}
+              </p>
+              <h2 className="text-[22px] leading-tight font-black text-slate-900 tracking-tight truncate">
+                {steps[step].title}
+              </h2>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={onClose}
+              className="w-9 h-9 rounded-full border border-slate-200/80 bg-slate-900/[0.06] flex items-center justify-center shrink-0"
+            >
+              <X className="w-4 h-4 text-slate-900" />
+            </motion.button>
           </div>
 
           {/* Progress indicator */}
           {!finalized && (
-            <div className="flex items-center mt-3">
-              {steps.map((s, idx) => (
-                <React.Fragment key={idx}>
-                  <div className={`flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold shrink-0 transition-all duration-300 ${
-                    step === idx
-                      ? 'bg-black text-white'
-                      : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {idx + 1}
-                  </div>
-                  {idx < steps.length - 1 && (
-                    <div className={`h-[2px] flex-1 transition-all duration-500 ${step > idx ? 'bg-black' : 'bg-slate-200'}`} />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
+            <>
+              <div className="flex items-center gap-1.5 mt-3.5">
+                {steps.map((s, idx) => (
+                  <div
+                    key={idx}
+                    className={`h-1 flex-1 rounded-full transition-all duration-500 ${step >= idx ? 'bg-slate-900' : 'bg-slate-900/10'}`}
+                  />
+                ))}
+              </div>
+              <p className="text-[10px] font-semibold text-slate-400 mt-2">
+                Etapa {step + 1} de {steps.length}
+              </p>
+            </>
           )}
         </div>
 
@@ -324,7 +326,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                 <div className="space-y-3">
                   {myDogs.length === 0 ? (
                     <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/60 rounded-3xl p-8 text-center space-y-4">
-                      <div className="w-16 h-16 mx-auto rounded-2xl bg-white shadow-sm flex items-center justify-center">
+                      <div className="w-16 h-16 mx-auto rounded-2xl bg-white/70 border border-orange-200/60 flex items-center justify-center">
                         <PawPrint className="w-8 h-8 text-orange-400" />
                       </div>
                       <div>
@@ -342,7 +344,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                    <>
                      <div className="flex items-center justify-between">
                        <div>
-                         <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                            Selecione os animais
                          </p>
                          <p className="text-[10px] text-slate-400 mt-0.5">Pode escolher mais do que um</p>
@@ -412,7 +414,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   {needsCareInfo ? (
                   <>
                   <div>
-                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                       Cuidados do Animal
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5">
@@ -432,7 +434,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       [dog.id]: { ...prev[dog.id], [field]: val }
                     }));
                     return (
-                      <div key={dog.id} className="bg-white space-y-2.5 pb-4 border-b border-slate-100">
+                      <div key={dog.id} className="rounded-2xl border border-slate-200/80 bg-white/70 p-3.5 space-y-2.5">
                         <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
                           {dog.photo_url ? (
                             <img src={dog.photo_url} className="w-9 h-9 rounded-lg object-cover" alt={dog.dog_name} />
@@ -489,7 +491,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   ) : isGrooming ? (
                     <div className="space-y-3">
                       <div>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Tipo de Corte / Serviço</p>
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Tipo de Corte / Serviço</p>
                         <p className="text-xs text-slate-400 mt-0.5">Escolha o tipo de banho e tosquias</p>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
@@ -518,7 +520,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   ) : isTraining ? (
                     <div className="space-y-3">
                       <div>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Objetivo do Treino</p>
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Objetivo do Treino</p>
                         <p className="text-xs text-slate-400 mt-0.5">Descreva o que pretende trabalhar com o seu animal</p>
                       </div>
                       <textarea
@@ -538,7 +540,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   ) : isDropin ? (
                     <div className="space-y-3">
                       <div>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Assistência em Casa</p>
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Assistência em Casa</p>
                         <p className="text-xs text-slate-400 mt-0.5">O profissional desloca-se a sua casa</p>
                       </div>
                       <div>
@@ -634,7 +636,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           </p>
                         </div>
                       )}
-                      <div className="bg-white rounded-xl border border-slate-200 p-2.5">
+                      <div className="bg-white/70 rounded-xl border border-slate-200/80 p-2.5">
                         <HotelRangeCalendar
                           daysOff={(hotel?.hotel_details?.blocked_dates || []).map(d => ({ date: d }))}
                           checkinPolicy={checkinPolicy}
@@ -663,7 +665,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   ) : (
                     <>
                       <div>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                           {isAppointment ? 'Escolha a data e hora' : 'Escolha a data'}
                         </p>
                         <p className="text-xs text-slate-400 mt-0.5">

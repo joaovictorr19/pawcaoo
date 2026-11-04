@@ -154,30 +154,35 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="max-h-[92vh] rounded-t-3xl focus:outline-none">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100">
+        <div className="px-5 pt-4 pb-4 border-b border-slate-200/70">
           <div className="flex items-center gap-3">
-            {step > 0 && (
-              <button onClick={() => setStep(s => s - 1)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                <ChevronLeft className="w-4 h-4 text-slate-600" />
+            {step > 0 ? (
+              <button onClick={() => setStep(s => s - 1)} className="w-9 h-9 rounded-full border border-slate-200/80 bg-slate-900/[0.06] flex items-center justify-center shrink-0">
+                <ChevronLeft className="w-4 h-4 text-slate-700" />
               </button>
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+                <CalendarDays className="w-4 h-4 text-white" />
+              </div>
             )}
-            <div>
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-slate-400 truncate">
                 {selectedService?.service_name || (walkerProfile.walker_name || walkerProfile.trainer_name)}
               </p>
-              <h2 className="text-base font-black text-slate-900">{stepTitles[step]}</h2>
+              <h2 className="text-[22px] leading-tight font-black text-slate-900 tracking-tight truncate">{stepTitles[step]}</h2>
             </div>
+            <button onClick={onClose} className="w-9 h-9 rounded-full border border-slate-200/80 bg-slate-900/[0.06] flex items-center justify-center shrink-0">
+              <X className="w-4 h-4 text-slate-700" />
+            </button>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-            <X className="w-4 h-4 text-slate-600" />
-          </button>
-        </div>
 
-        {/* Progress */}
-        <div className="flex gap-1 px-5 pt-3">
-          {[0, 1, 2, 3, 4].map(s => (
-            <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-300 ${step >= s ? 'bg-blue-500' : 'bg-slate-200'}`} />
-          ))}
+          {/* Progress */}
+          <div className="flex items-center gap-1.5 mt-3.5">
+            {[0, 1, 2, 3, 4].map(s => (
+              <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-500 ${step >= s ? 'bg-blue-600' : 'bg-slate-900/10'}`} />
+            ))}
+          </div>
+          <p className="text-[10px] font-semibold text-slate-400 mt-2">Etapa {step + 1} de 5</p>
         </div>
 
         <div className="overflow-y-auto flex-1 px-5 pt-4 pb-8">
@@ -199,8 +204,8 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                 </div>
               ) : (
                 <>
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">
-                    Quais animais vão? <span className="text-blue-500 normal-case font-normal">(pode selecionar mais de um)</span>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 mb-2">
+                    Quais animais vão? <span className="text-blue-500 normal-case font-medium tracking-normal">(pode selecionar mais de um)</span>
                   </p>
                   <div className="space-y-2">
                     {myDogs.map(dog => {
