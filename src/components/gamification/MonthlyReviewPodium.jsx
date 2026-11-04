@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { Info, Star, Timer, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/components/LanguageContext";
@@ -12,8 +11,10 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import PodiumPedestal from "@/components/gamification/PodiumPedestal";
-import { buildMonthlyPodium, getLisbonMonthRange, splitCountdown } from "@/lib/reviewPodium";
+import CategoryPodium from "@/components/gamification/CategoryPodium";
+import { buildCategoryPodium, getLisbonMonthRange, splitCountdown } from "@/lib/reviewPodium";
+import { buildPodiumPrizes } from "@/lib/podiumPrizes";
+import { getMonthKey } from "@/lib/stagePrizes";
 import "./monthlyReviewPodium.css";
 
 const COPY = {
@@ -22,81 +23,116 @@ const COPY = {
     rules: "Regras",
     rulesTitle: "Como funciona o pódio",
     rulesIntro:
-      "O pódio do Legado é mensal e conta apenas as reviews recebidas no mês em curso, no fuso de Lisboa.",
+      "Todos os meses reconhecemos os hotéis e os passeadores mais avaliados pelos clientes, no fuso de Lisboa. Cada pódio tem três lugares e prémios mensais.",
     items: [
-      "Cada review vale a nota em estrelas: 1 a 5 pontos.",
-      "Se a review tiver comentário, soma mais 2 pontos.",
-      "Os 3 profissionais com mais pontos no mês sobem ao pódio.",
-      "Empate: mais reviews, depois a review mais recente, depois o nome.",
+      "Contam apenas as avaliações recebidas no mês em curso.",
+      "Há dois pódios separados: um para hotéis, outro para passeadores.",
+      "Sobem ao pódio os 3 profissionais com mais avaliações recebidas.",
+      "Desempate: mais estrelas recebidas, depois a avaliação mais recente, depois o nome.",
+      "Os prémios do mês aparecem junto de cada lugar do pódio.",
       "No dia 1 de cada mês o ranking recomeça a zero.",
     ],
-    emptyTitle: "Ainda sem pontos este mês",
-    emptyText:
-      "O pódio abre assim que chegarem as primeiras reviews. Cada estrela e cada comentário contam.",
     loading: "A carregar o pódio…",
     gotIt: "Entendi",
     close: "Fechar",
-    reviews: "reviews",
+    reviewsLabel: "aval.",
+    openSlot: "Lugar livre",
+    prizePending: "Prémio a anunciar",
+    hotelsTitle: "Pódio dos Hotéis",
+    hotelsSubtitle: "Hotéis com mais avaliações recebidas este mês",
+    walkersTitle: "Pódio dos Passeadores",
+    walkersSubtitle: "Passeadores com mais avaliações recebidas este mês",
+    emptyHotelTitle: "Ainda sem hotéis avaliados",
+    emptyHotelText: "Este pódio abre assim que os hotéis receberem as primeiras avaliações do mês.",
+    emptyWalkerTitle: "Ainda sem passeadores avaliados",
+    emptyWalkerText: "Este pódio abre assim que os passeadores receberem as primeiras avaliações do mês.",
   },
   en: {
     resetsIn: "Resets in",
     rules: "Rules",
     rulesTitle: "How the podium works",
     rulesIntro:
-      "The Legacy podium is monthly and only counts reviews received in the current month, Lisbon time.",
+      "Every month we recognise the hotels and walkers with the most client reviews, Lisbon time. Each podium has three places and monthly prizes.",
     items: [
-      "Each review is worth its star rating: 1 to 5 points.",
-      "A review with a comment adds 2 extra points.",
-      "The 3 professionals with the most points reach the podium.",
-      "Tie-break: more reviews, then the most recent review, then name.",
+      "Only reviews received in the current month count.",
+      "There are two separate podiums: one for hotels, one for walkers.",
+      "The 3 professionals with the most reviews received reach the podium.",
+      "Tie-break: more stars received, then the most recent review, then name.",
+      "Each month's prizes are shown next to each podium place.",
       "On the 1st of each month the ranking starts from zero.",
     ],
-    emptyTitle: "No points yet this month",
-    emptyText: "The podium opens as soon as the first reviews arrive. Every star and comment counts.",
     loading: "Loading the podium…",
     gotIt: "Got it",
     close: "Close",
-    reviews: "reviews",
+    reviewsLabel: "rev.",
+    openSlot: "Open place",
+    prizePending: "Prize to be announced",
+    hotelsTitle: "Hotels Podium",
+    hotelsSubtitle: "Hotels with the most reviews received this month",
+    walkersTitle: "Walkers Podium",
+    walkersSubtitle: "Walkers with the most reviews received this month",
+    emptyHotelTitle: "No reviewed hotels yet",
+    emptyHotelText: "This podium opens as soon as hotels receive their first reviews of the month.",
+    emptyWalkerTitle: "No reviewed walkers yet",
+    emptyWalkerText: "This podium opens as soon as walkers receive their first reviews of the month.",
   },
   es: {
     resetsIn: "Reinicia en",
     rules: "Reglas",
     rulesTitle: "Cómo funciona el podio",
     rulesIntro:
-      "El podio del Legado es mensual y solo cuenta las reseñas recibidas en el mes en curso, hora de Lisboa.",
+      "Cada mes reconocemos a los hoteles y paseadores con más reseñas de clientes, hora de Lisboa. Cada podio tiene tres lugares y premios mensuales.",
     items: [
-      "Cada reseña vale su nota en estrellas: de 1 a 5 puntos.",
-      "Si la reseña tiene comentario, suma 2 puntos extra.",
-      "Los 3 profesionales con más puntos suben al podio.",
-      "Desempate: más reseñas, luego la más reciente, luego el nombre.",
+      "Solo cuentan las reseñas recibidas en el mes en curso.",
+      "Hay dos podios separados: uno para hoteles y otro para paseadores.",
+      "Suben al podio los 3 profesionales con más reseñas recibidas.",
+      "Desempate: más estrellas recibidas, luego la reseña más reciente, luego el nombre.",
+      "Los premios del mes aparecen junto a cada lugar del podio.",
       "El día 1 de cada mes el ranking vuelve a cero.",
     ],
-    emptyTitle: "Aún sin puntos este mes",
-    emptyText: "El podio se abre en cuanto lleguen las primeras reseñas. Cada estrella y comentario cuentan.",
     loading: "Cargando el podio…",
     gotIt: "Entendido",
     close: "Cerrar",
-    reviews: "reseñas",
+    reviewsLabel: "reseñas",
+    openSlot: "Lugar libre",
+    prizePending: "Premio por anunciar",
+    hotelsTitle: "Podio de Hoteles",
+    hotelsSubtitle: "Hoteles con más reseñas recibidas este mes",
+    walkersTitle: "Podio de Paseadores",
+    walkersSubtitle: "Paseadores con más reseñas recibidas este mes",
+    emptyHotelTitle: "Aún sin hoteles reseñados",
+    emptyHotelText: "Este podio se abre en cuanto los hoteles reciban sus primeras reseñas del mes.",
+    emptyWalkerTitle: "Aún sin paseadores reseñados",
+    emptyWalkerText: "Este podio se abre en cuanto los paseadores reciban sus primeras reseñas del mes.",
   },
   fr: {
     resetsIn: "Réinitialisation dans",
     rules: "Règles",
     rulesTitle: "Comment fonctionne le podium",
     rulesIntro:
-      "Le podium de l'Héritage est mensuel et compte uniquement les avis reçus pendant le mois en cours, heure de Lisbonne.",
+      "Chaque mois, nous récompensons les hôtels et les promeneurs les plus évalués par les clients, heure de Lisbonne. Chaque podium a trois places et des prix mensuels.",
     items: [
-      "Chaque avis vaut sa note en étoiles : de 1 à 5 points.",
-      "Un avis avec commentaire ajoute 2 points.",
-      "Les 3 professionnels les plus points montent sur le podium.",
-      "Départage : plus d'avis, puis l'avis le plus récent, puis le nom.",
+      "Seuls les avis reçus pendant le mois en cours comptent.",
+      "Il y a deux podiums séparés : un pour les hôtels, un pour les promeneurs.",
+      "Les 3 professionnels avec le plus d'avis reçus montent sur le podium.",
+      "Départage : plus d'étoiles reçues, puis l'avis le plus récent, puis le nom.",
+      "Les prix du mois apparaissent à côté de chaque place du podium.",
       "Le 1er de chaque mois, le classement repart de zéro.",
     ],
-    emptyTitle: "Aucun point ce mois-ci",
-    emptyText: "Le podium s'ouvre dès les premiers avis. Chaque étoile et chaque commentaire comptent.",
     loading: "Chargement du podium…",
     gotIt: "Compris",
     close: "Fermer",
-    reviews: "avis",
+    reviewsLabel: "avis",
+    openSlot: "Place libre",
+    prizePending: "Prix à annoncer",
+    hotelsTitle: "Podium des Hôtels",
+    hotelsSubtitle: "Hôtels avec le plus d'avis reçus ce mois-ci",
+    walkersTitle: "Podium des Promeneurs",
+    walkersSubtitle: "Promeneurs avec le plus d'avis reçus ce mois-ci",
+    emptyHotelTitle: "Aucun hôtel évalué",
+    emptyHotelText: "Ce podium s'ouvre dès les premiers avis reçus par les hôtels ce mois-ci.",
+    emptyWalkerTitle: "Aucun promeneur évalué",
+    emptyWalkerText: "Ce podium s'ouvre dès les premiers avis reçus par les promeneurs ce mois-ci.",
   },
 };
 
@@ -125,14 +161,16 @@ function ResetCountdown({ endTime, label }) {
   );
 }
 
+/** Dois pódios mensais: hotéis e passeadores, ordenados por avaliações recebidas. */
 export default function MonthlyReviewPodium() {
   const { language } = useLanguage();
   const copy = COPY[language] || COPY.pt;
   const [rulesOpen, setRulesOpen] = useState(false);
 
   const monthRange = useMemo(() => getLisbonMonthRange(new Date()), []);
+  const monthKey = useMemo(() => getMonthKey(new Date()), []);
 
-  const { data: entries = [], isLoading } = useQuery({
+  const { data: podiums, isLoading } = useQuery({
     queryKey: ["monthlyReviewPodium", monthRange.start.toISOString()],
     queryFn: async () => {
       const reviews = await base44.entities.Review.filter(
@@ -146,40 +184,41 @@ export default function MonthlyReviewPodium() {
         500
       );
 
-      const podium = buildMonthlyPodium(reviews);
-      if (podium.length === 0) return [];
+      const ids = Array.from(new Set((reviews || []).map((review) => review.walker_id).filter(Boolean)));
+      if (ids.length === 0) return { hotels: [], walkers: [] };
 
-      const ids = podium.map((entry) => entry.professionalId);
-      const [walkers, trainers] = await Promise.all([
-        base44.entities.WalkerProfile.filter({ id: { $in: ids } }),
-        base44.entities.TrainerProfile.filter({ id: { $in: ids } }),
-      ]);
+      const profiles = await base44.entities.WalkerProfile.filter({ id: { $in: ids } });
+      const byId = new Map((profiles || []).map((profile) => [profile.id, profile]));
 
-      const details = new Map();
-      (walkers || []).forEach((walker) => {
-        details.set(walker.id, {
-          name: walker.walker_name || walker.hotel_details?.hotel_name || "",
-          photoUrl: walker.photo_url || "",
+      const decorate = (entries) =>
+        entries.map((entry) => {
+          const profile = byId.get(entry.professionalId);
+          return {
+            ...entry,
+            name: profile?.walker_name || profile?.hotel_details?.hotel_name || entry.name,
+            photoUrl: profile?.photo_url || "",
+          };
         });
-      });
-      (trainers || []).forEach((trainer) => {
-        details.set(trainer.id, {
-          name: trainer.trainer_name || "",
-          photoUrl: trainer.photo_url || "",
-        });
-      });
 
-      return podium.map((entry) => ({
-        ...entry,
-        name: details.get(entry.professionalId)?.name || entry.name,
-        photoUrl: details.get(entry.professionalId)?.photoUrl || "",
-      }));
+      return {
+        hotels: decorate(buildCategoryPodium(reviews, byId, "hotel")),
+        walkers: decorate(buildCategoryPodium(reviews, byId, "walker")),
+      };
     },
     staleTime: 60 * 1000,
   });
 
-  const place = (position) =>
-    entries[position - 1] || { name: "", points: 0, reviews: 0, photoUrl: "" };
+  const { data: prizeConfig } = useQuery({
+    queryKey: ["monthlyPodiumPrize", monthKey],
+    queryFn: async () => {
+      const rows = await base44.entities.MonthlyPodiumPrize.filter({ month_key: monthKey });
+      return rows[0] || null;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const hotelPrizes = useMemo(() => buildPodiumPrizes(prizeConfig, "hotel"), [prizeConfig]);
+  const walkerPrizes = useMemo(() => buildPodiumPrizes(prizeConfig, "walker"), [prizeConfig]);
 
   return (
     <div>
@@ -197,49 +236,30 @@ export default function MonthlyReviewPodium() {
         </Button>
       </div>
 
-      <div className="flex items-end justify-center gap-1 sm:gap-2 md:gap-4">
-        <PodiumPedestal
-          position={2}
-          delay={0.2}
-          name={place(2).name}
-          photoUrl={place(2).photoUrl}
-          points={place(2).points}
-          reviews={place(2).reviews}
+      <div className="space-y-5">
+        <CategoryPodium
+          category="hotel"
+          title={copy.hotelsTitle}
+          subtitle={copy.hotelsSubtitle}
+          entries={podiums?.hotels || []}
+          prizes={hotelPrizes}
+          isLoading={isLoading}
+          labels={copy}
+          emptyTitle={copy.emptyHotelTitle}
+          emptyText={copy.emptyHotelText}
         />
-        <PodiumPedestal
-          position={1}
-          delay={0}
-          name={place(1).name}
-          photoUrl={place(1).photoUrl}
-          points={place(1).points}
-          reviews={place(1).reviews}
-        />
-        <PodiumPedestal
-          position={3}
-          delay={0.4}
-          name={place(3).name}
-          photoUrl={place(3).photoUrl}
-          points={place(3).points}
-          reviews={place(3).reviews}
+        <CategoryPodium
+          category="walker"
+          title={copy.walkersTitle}
+          subtitle={copy.walkersSubtitle}
+          entries={podiums?.walkers || []}
+          prizes={walkerPrizes}
+          isLoading={isLoading}
+          labels={copy}
+          emptyTitle={copy.emptyWalkerTitle}
+          emptyText={copy.emptyWalkerText}
         />
       </div>
-
-      {isLoading ? (
-        <p className="mt-6 text-center text-xs text-gray-600 animate-pulse">{copy.loading}</p>
-      ) : (
-        entries.length === 0 && (
-          <motion.div
-            className="mt-6 rounded-2xl border border-amber-500/20 bg-neutral-900/50 px-5 py-5 text-center"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <p className="text-xs font-bold uppercase tracking-wider text-amber-400">{copy.emptyTitle}</p>
-            <p className="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-gray-500">
-              {copy.emptyText}
-            </p>
-          </motion.div>
-        )
-      )}
 
       <Dialog open={rulesOpen} onOpenChange={setRulesOpen}>
         <DialogContent className="podium-rules-dialog w-[calc(100%-2rem)] max-w-md gap-0 border-0 p-0 [&>button]:hidden">
@@ -265,10 +285,7 @@ export default function MonthlyReviewPodium() {
           </ul>
 
           <div className="podium-rules-foot">
-            <Button
-              onClick={() => setRulesOpen(false)}
-              className="podium-rules-ok"
-            >
+            <Button onClick={() => setRulesOpen(false)} className="podium-rules-ok">
               {copy.gotIt}
             </Button>
           </div>

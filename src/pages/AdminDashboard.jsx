@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import AdminModuleNavigation from "@/components/admin/AdminModuleNavigation";
 import AdminLegacyPrizes from "@/components/admin/AdminLegacyPrizes";
+import AdminPodiumPrizes from "@/components/admin/AdminPodiumPrizes";
 import AdminStatCard from "@/components/admin/AdminStatCard";
 import {
   Dialog,
@@ -1276,8 +1277,9 @@ export default function AdminDashboard() {
 
           <TabsContent value="premios">
             {activeTab === 'premios' && (
-              <div className="mt-6">
+              <div className="mt-6 space-y-6">
                 <AdminLegacyPrizes />
+                <AdminPodiumPrizes />
               </div>
             )}
           </TabsContent>

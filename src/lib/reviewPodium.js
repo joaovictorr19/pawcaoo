@@ -66,7 +66,7 @@ export function getLisbonMonthRange(now = new Date()) {
   };
 }
 
-/** Pontos de uma review: estrelas (1–5) + bónus de comentário. */
+/** Pontos de uma review: estrelas (1–5) + bónus de comentário. Usado só no desempate. */
 export function scoreReview(review) {
   const rating = Math.round(Number(review?.rating));
   if (!Number.isFinite(rating) || rating < 1 || rating > MAX_STARS) return 0;
@@ -74,24 +74,36 @@ export function scoreReview(review) {
   return rating + (hasComment ? COMMENT_BONUS : 0);
 }
 
+/** Categoria de pódio de um perfil profissional. */
+export function profileCategory(profile) {
+  const type = profile?.professional_type;
+  if (type === "hotel") return "hotel";
+  if (type === "trainer") return "trainer";
+  if (type === "shop") return "shop";
+  return "walker";
+}
+
 /**
- * Agrupa reviews por profissional e devolve o topo do ranking mensal.
- * Desempate: pontos > nº de reviews > review mais recente > nome.
+ * Pódio de uma categoria: conta as avaliações recebidas no mês para os perfis
+ * dessa categoria e ordena pelo número de avaliações.
+ * Desempate: pontos das estrelas > avaliação mais recente > nome.
  */
-export function buildMonthlyPodium(reviews, limit = 3) {
+export function buildCategoryPodium(reviews, profilesById, category, limit = 3) {
   const grouped = new Map();
 
   (reviews || []).forEach((review) => {
-    const professionalId = review?.walker_id || review?.trainer_id;
+    const professionalId = review?.walker_id;
     if (!professionalId) return;
+
+    const profile = profilesById?.get?.(professionalId);
+    if (!profile || profileCategory(profile) !== category) return;
 
     const points = scoreReview(review);
     if (points <= 0) return;
 
     const entry = grouped.get(professionalId) || {
       professionalId,
-      professionalType: review.walker_id ? "walker" : "trainer",
-      name: review.walker_name || review.trainer_name || "",
+      name: review.walker_name || "",
       points: 0,
       reviews: 0,
       lastReviewAt: 0,
@@ -99,7 +111,7 @@ export function buildMonthlyPodium(reviews, limit = 3) {
 
     entry.points += points;
     entry.reviews += 1;
-    if (!entry.name) entry.name = review.walker_name || review.trainer_name || "";
+    if (!entry.name) entry.name = review.walker_name || "";
 
     const timestamp = Date.parse(review.created_date || "");
     if (Number.isFinite(timestamp) && timestamp > entry.lastReviewAt) {
@@ -112,8 +124,8 @@ export function buildMonthlyPodium(reviews, limit = 3) {
   return Array.from(grouped.values())
     .sort(
       (a, b) =>
-        b.points - a.points ||
         b.reviews - a.reviews ||
+        b.points - a.points ||
         b.lastReviewAt - a.lastReviewAt ||
         String(a.name).localeCompare(String(b.name))
     )

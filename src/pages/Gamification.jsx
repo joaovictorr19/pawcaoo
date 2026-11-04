@@ -529,7 +529,7 @@ export default function Gamification() {
             O Legado dos Titãs
           </motion.h2>
           <p className="text-center text-gray-600 text-xs mb-6">
-            Os profissionais com mais pontos em reviews este mês
+            Hotéis e passeadores com mais avaliações recebidas este mês
           </p>
 
           {/* Pódio mensal por reviews */}
