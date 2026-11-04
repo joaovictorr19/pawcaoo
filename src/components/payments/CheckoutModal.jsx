@@ -224,7 +224,7 @@ export default function CheckoutModal({
                   ? 'Pagamento processado de forma segura pelo Stripe. O valor ficará retido até a conclusão do serviço.'
                   : 'Payment securely processed by Stripe. Amount will be held until service completion.'}
               </p>
-              <div className="flex items-center gap-2 text-xs text-green-600 font-medium bg-white/50 p-2 rounded-lg">
+              <div className="flex items-center gap-2 text-xs text-green-600 font-medium bg-green-50 p-2 rounded-lg">
                 <Check className="w-4 h-4" />
                 {language === 'pt' ? '🔒 Pagamento protegido' : '🔒 Protected payment'}
               </div>

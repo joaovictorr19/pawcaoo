@@ -153,12 +153,12 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="max-h-[92vh] rounded-t-3xl focus:outline-none">
+      <DrawerContent className="max-h-[92vh] rounded-t-3xl !bg-white focus:outline-none">
         {/* Header */}
         <div className="px-5 pt-4 pb-4 border-b border-slate-200 bg-white">
           <div className="flex items-center gap-3">
             {step > 0 ? (
-              <button onClick={() => setStep(s => s - 1)} className="w-9 h-9 rounded-full border border-slate-200/80 bg-slate-900/[0.06] flex items-center justify-center shrink-0">
+              <button onClick={() => setStep(s => s - 1)} className="w-9 h-9 rounded-full border border-slate-200/80 bg-slate-100 flex items-center justify-center shrink-0">
                 <ChevronLeft className="w-4 h-4 text-slate-700" />
               </button>
             ) : (
@@ -172,7 +172,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
               </p>
               <h2 className="text-[22px] leading-tight font-black text-slate-900 tracking-tight truncate">{stepTitles[step]}</h2>
             </div>
-            <button onClick={onClose} className="w-9 h-9 rounded-full border border-slate-200/80 bg-slate-900/[0.06] flex items-center justify-center shrink-0">
+            <button onClick={onClose} className="w-9 h-9 rounded-full border border-slate-200/80 bg-slate-100 flex items-center justify-center shrink-0">
               <X className="w-4 h-4 text-slate-700" />
             </button>
           </div>
@@ -251,11 +251,11 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                         isSelected ? 'border-[#0d9483] bg-[#0d9483] text-white' : 'border-slate-300 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)] hover:border-[#0d9483]/50'
                       }`}
                     >
-                      <p className={`text-[9px] uppercase font-bold ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>
+                      <p className={`text-[9px] uppercase font-bold ${isSelected ? 'text-white' : 'text-slate-500'}`}>
                         {dateObj.toLocaleDateString('pt-PT', { weekday: 'short' })}
                       </p>
                       <p className={`text-xl font-black ${isSelected ? 'text-white' : 'text-slate-900'}`}>{dateObj.getDate()}</p>
-                      <p className={`text-[9px] ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>
+                      <p className={`text-[9px] ${isSelected ? 'text-white' : 'text-slate-500'}`}>
                         {dateObj.toLocaleDateString('pt-PT', { month: 'short' })}
                       </p>
                     </button>
@@ -318,7 +318,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   key={option.id}
                   onClick={() => setPickupMethod(option.id)}
                   className={`w-full p-4 rounded-2xl border-2 transition-colors text-left tap-stable ${
-                    pickupMethod === option.id ? 'border-[#0d9483] bg-[#0d9483]/8 ring-1 ring-[#0d9483]/25' : 'border-slate-300 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)]'
+                    pickupMethod === option.id ? 'border-[#0d9483] bg-[#eef8f6] ring-1 ring-[#0d9483]/25' : 'border-slate-300 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -393,7 +393,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   <p className="text-xs text-amber-600 font-medium -mt-1">
                     Por segurança, o telefone do profissional fica oculto até o pedido ser aceite e o pagamento concluído.
                   </p>
-                  <div className="rounded-xl border border-[#0d9483]/20 bg-[#0d9483]/8 p-3 flex items-start justify-between gap-3">
+                  <div className="rounded-xl border border-[#a8dcd3] bg-[#eef8f6] p-3 flex items-start justify-between gap-3">
                     <div className="pr-2">
                       <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
                         <LocateFixed className="w-4 h-4 text-[#0d9483]" />
@@ -424,7 +424,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   </div>
                 </div>
                 <div className="bg-[#0d9483] rounded-xl px-4 py-3 flex justify-between items-center">
-                  <span className="text-sm font-bold text-white/80">Total</span>
+                  <span className="text-sm font-bold text-white">Total</span>
                   <span className="text-2xl font-black text-white">{totalAmount}€</span>
                 </div>
               </div>
