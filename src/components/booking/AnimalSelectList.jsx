@@ -29,7 +29,7 @@ export default function AnimalSelectList({ dogs = [], selectedIds = [], onToggle
             onClick={() => onToggle(dog)}
             className={`tap-stable w-full flex items-center gap-3 rounded-2xl border-2 px-3 py-3 text-left transition-colors duration-150 ${
               isSelected
-                ? "border-[#0d9483] bg-[#0d9483] shadow-[0_10px_24px_-10px_rgba(13,148,131,0.8)]"
+                ? "border-[#0d9483] bg-[#e7f5f2] ring-1 ring-[#0d9483]/30"
                 : "border-slate-200 bg-white shadow-[0_2px_8px_-3px_rgba(15,23,42,0.18)]"
             }`}
           >
@@ -37,33 +37,27 @@ export default function AnimalSelectList({ dogs = [], selectedIds = [], onToggle
               <img
                 src={dog.photo_url}
                 alt={dog.dog_name}
-                className={`w-10 h-10 rounded-xl object-cover shrink-0 ring-1 ${
-                  isSelected ? "ring-white/50" : "ring-black/5"
-                }`}
+                className="w-10 h-10 rounded-xl object-cover shrink-0 ring-1 ring-black/5"
               />
             ) : (
               <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                  isSelected ? "bg-white/20 text-white" : "bg-slate-100 text-slate-400"
-                }`}
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-slate-100 text-slate-500"
               >
                 <PawPrint className="w-4 h-4" />
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className={`text-sm font-bold truncate ${isSelected ? "text-white" : "text-slate-900"}`}>
-                {dog.dog_name}
-              </p>
-              <p className={`text-[11px] truncate ${isSelected ? "text-white/80" : "text-slate-500"}`}>
+              <p className="text-sm font-bold truncate text-slate-900">{dog.dog_name}</p>
+              <p className={`text-[11px] truncate font-semibold ${isSelected ? "text-[#0d9483]" : "text-slate-500"}`}>
                 {isSelected ? "Selecionado" : (dog.breed || SIZE_LABELS[dog.size] || "Animal")}
               </p>
             </div>
             <span
               className={`w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors ${
-                isSelected ? "border-white bg-white" : "border-slate-300 bg-white"
+                isSelected ? "border-[#0d9483] bg-[#0d9483]" : "border-slate-300 bg-white"
               }`}
             >
-              {isSelected && <Check className="w-3.5 h-3.5 text-[#0d9483] stroke-[3.5]" />}
+              {isSelected && <Check className="w-3.5 h-3.5 text-white stroke-[3.5]" />}
             </span>
           </button>
         );

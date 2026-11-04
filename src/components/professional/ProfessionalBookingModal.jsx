@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import BookingModalShell from '@/components/booking/BookingModalShell';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Clock, MapPin, CalendarDays, X, ChevronLeft, Phone, LocateFixed, PlusCircle, Check } from 'lucide-react';
@@ -152,8 +152,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
   const stepTitles = ['Selecione o Animal', 'Escolha o dia', 'Hora & Duração', 'Forma de recolha', 'Confirmar'];
 
   return (
-    <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="max-h-[92vh] rounded-t-3xl !bg-white focus:outline-none">
+    <BookingModalShell open={isOpen} onClose={onClose}>
         {/* Header */}
         <div className="px-5 pt-4 pb-4 border-b border-slate-200 bg-white">
           <div className="flex items-center gap-3">
@@ -186,7 +185,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
           <p className="text-[10px] font-bold text-slate-500 mt-2">Etapa {step + 1} de 5</p>
         </div>
 
-        <div className="overflow-y-auto flex-1 px-5 pt-4 pb-8">
+        <div className="overflow-y-auto flex-1 px-5 pt-4 pb-8 bg-white">
 
           {/* STEP 0 — Animal(is) */}
           {step === 0 && (
@@ -448,7 +447,6 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
             </div>
           )}
         </div>
-      </DrawerContent>
-    </Drawer>
+    </BookingModalShell>
   );
 }

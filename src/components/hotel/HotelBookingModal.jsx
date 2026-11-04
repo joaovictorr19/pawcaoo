@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import BookingModalShell from '@/components/booking/BookingModalShell';
 import { Button } from '@/components/ui/button';
 import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2, Check, Utensils, Pill, Repeat, Calendar, Sparkles, Home, Truck, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -257,8 +257,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="max-h-[92vh] rounded-t-[1.25rem] !bg-white focus:outline-none flex flex-col">
+    <BookingModalShell open={isOpen} onClose={onClose}>
         {/* Header */}
         <div className="px-5 pt-4 pb-4 border-b border-slate-200 bg-white">
           <div className="flex items-center gap-3">
@@ -311,7 +310,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto flex-1 px-5 pt-4 pb-6">
+        <div className="overflow-y-auto flex-1 px-5 pt-4 pb-6 bg-white">
           <AnimatePresence mode="wait" custom={step}>
             <motion.div
               key={step + (finalized ? '-final' : '')}
@@ -1100,7 +1099,6 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             )}
           </div>
         )}
-      </DrawerContent>
-    </Drawer>
+    </BookingModalShell>
   );
 }
