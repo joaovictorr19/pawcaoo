@@ -47,8 +47,8 @@ export default function WalkDetailsForm({ details, onChange }) {
               className={cn(
                 "flex flex-col items-center p-3 rounded-xl border-2 text-xs transition-all",
                 details.walk_time === slot.value
-                  ? "border-[#0d9483] bg-[#0d9483]/5 text-[#0d9483]"
-                  : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                  ? "border-[#0d9483] bg-[#0d9483]/12 text-[#0d9483] shadow-[0_8px_18px_-10px_rgba(13,148,131,0.65)]"
+                  : "border-gray-200 bg-white text-gray-600 shadow-[0_2px_6px_-2px_rgba(15,23,42,0.12)] hover:border-gray-300"
               )}
             >
               <span className="text-base">{slot.label.split(" ")[0]}</span>
@@ -73,8 +73,8 @@ export default function WalkDetailsForm({ details, onChange }) {
               className={cn(
                 "py-3 rounded-xl border-2 text-sm font-semibold transition-all",
                 details.duration_hours === d.value
-                  ? "border-[#0d9483] bg-[#0d9483] text-white"
-                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                  ? "border-[#0d9483] bg-[#0d9483] text-white shadow-[0_8px_18px_-10px_rgba(13,148,131,0.75)]"
+                  : "border-gray-200 bg-white text-gray-700 shadow-[0_2px_6px_-2px_rgba(15,23,42,0.12)] hover:border-gray-300"
               )}
             >
               {d.label}
