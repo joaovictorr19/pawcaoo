@@ -304,6 +304,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   });
 
   const handleNextStep = () => {
+    console.log('📍 handleNextStep - Step:', step, 'Data:', formData);
     
     if (step === 1) {
       // Validar cão — obrigar sempre animal pré-cadastrado
@@ -351,6 +352,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         return;
       }
       
+      console.log('✅ Step 1 validado, avançando...');
       setStep(2);
       
     } else if (step === 2) {
@@ -385,6 +387,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         return;
       }
       
+      console.log('✅ Step 2 validado, avançando para pagamento...');
       setStep(3);
     }
   };
@@ -585,6 +588,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                         mode="single"
                         selected={formData.walk_date}
                         onSelect={(date) => {
+                          console.log('📅 Data selecionada:', date);
                           setFormData({...formData, walk_date: date});
                         }}
                         disabled={(date) => {
@@ -606,6 +610,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                   <MobileSelect
                     value={formData.walk_time}
                     onValueChange={(value) => {
+                      console.log('⏰ Horário selecionado:', value);
                       setFormData({...formData, walk_time: value});
                     }}
                     options={(
@@ -884,6 +889,10 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  console.log('🔘 Botão Continuar clicado - Step:', step);
+                  console.log('📊 FormData:', formData);
+                  console.log('🐕 Selected Dog:', selectedDogId);
+                  console.log('✍️ Manual Input:', showManualInput);
                   handleNextStep();
                 }}
                 className="flex-1 h-10 text-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md font-semibold"
@@ -897,6 +906,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 onClick={async () => {
                   setIsProcessing(true);
                   try {
+                    console.log('🚀 Criando reserva sem pagamento...');
+                    console.log('👤 Profissional:', pro.id, pro.created_by, proName);
 
                     // Validação final
                     if (!formData.dog_name?.trim()) {
@@ -959,7 +970,12 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                       type: isWalker ? 'walk' : 'training'
                     };
 
+                    console.log('📦 Booking data FINAL:', JSON.stringify(bookingData, null, 2));
                     const booking = await createBookingMutation.mutateAsync(bookingData);
+                    console.log('✅ Reserva criada com SUCESSO!');
+                    console.log('   ID:', booking.id);
+                    console.log('   Walker ID salvo:', booking.walker_id);
+                    console.log('   Walker Email salvo:', booking.walker_email);
 
                     queryClient.invalidateQueries({ queryKey: ['myBookings'] });
                     queryClient.invalidateQueries({ queryKey: ['conversations'] });

@@ -22,6 +22,7 @@ export default function Landing() {
   useEffect(() => {
     if (isError) {
       // Silently handle auth check errors (usually just means not logged in or network issue)
+      console.log("Auth check failed - user likely not logged in");
     }
   }, [isError]);
 
@@ -416,7 +417,7 @@ export default function Landing() {
         </div>
       </footer>
 
-      <style>{`
+      <style jsx>{`
         @keyframes blob {
           0% { transform: translate(0px, 0px) scale(1); }
           33% { transform: translate(30px, -50px) scale(1.1); }

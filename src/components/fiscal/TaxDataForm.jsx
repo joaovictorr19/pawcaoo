@@ -203,6 +203,7 @@ export default function TaxDataForm({ onComplete, professionalType }) {
       return;
     }
 
+    console.log('💾 Salvando dados fiscais:', formData);
     await saveMutation.mutateAsync(formData);
   };
 

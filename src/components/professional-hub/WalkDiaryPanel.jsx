@@ -265,7 +265,7 @@ function NewRecordForm({ booking, user, professionalProfile, onSaved, onCancel }
           icon: "📷",
           link: "/ClientDashboard",
         });
-      } catch { /* intentionally ignored */ }
+      } catch {}
 
       toast.success("Registo publicado! O dono foi notificado.");
       onSaved();

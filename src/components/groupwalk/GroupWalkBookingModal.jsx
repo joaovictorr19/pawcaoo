@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import BookingModalShell from "@/components/booking/BookingModalShell";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { X, Dog, Euro, Users, MapPin, Car, MapPinned, Clock, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -72,7 +71,8 @@ export default function GroupWalkBookingModal({ isOpen, onClose, event, currentU
   if (!event) return null;
 
   return (
-    <BookingModalShell open={isOpen} onClose={onClose}>
+    <Drawer open={isOpen} onOpenChange={onClose}>
+      <DrawerContent className="max-h-[92vh] rounded-t-3xl">
         <DrawerHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-3">
           <DrawerTitle className="text-base font-black text-slate-900">Inscrever no Passeio</DrawerTitle>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
@@ -175,6 +175,7 @@ export default function GroupWalkBookingModal({ isOpen, onClose, event, currentU
             A vaga é reservada imediatamente. Se não pagares em 5 minutos, a vaga será libertada automaticamente.
           </p>
         </div>
-    </BookingModalShell>
+      </DrawerContent>
+    </Drawer>
   );
 }

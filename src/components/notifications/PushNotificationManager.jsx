@@ -95,6 +95,7 @@ export default function PushNotificationManager({ user }) {
             await base44.entities.UserProfile.update(profiles[0].id, {
               push_subscription: subscription.toJSON()
             });
+            console.log('✅ Push subscription salva no perfil');
           }
         } catch (pushError) {
           console.error('Erro ao configurar push:', pushError);
@@ -119,6 +120,7 @@ export default function PushNotificationManager({ user }) {
           // Fechar automaticamente após 4 segundos
           setTimeout(() => notification.close(), 4000);
         } catch (notifError) {
+          console.log('Notification created but may not display:', notifError);
           // Não mostrar erro ao usuário, pois a permissão foi concedida
         }
       } else if (result === 'denied') {
@@ -136,7 +138,7 @@ export default function PushNotificationManager({ user }) {
   const urlBase64ToUint8Array = (base64String) => {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
-      .replace(/-/g, '+')
+      .replace(/\-/g, '+')
       .replace(/_/g, '/');
     const rawData = window.atob(base64);
     const outputArray = new Uint8Array(rawData.length);

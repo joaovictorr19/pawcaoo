@@ -60,7 +60,9 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
   const { data: booking, error, isLoading: loadingBooking } = useQuery({
     queryKey: ['activeBooking', bookingId],
     queryFn: async () => {
+      console.log('🔍 [COCKPIT] Fetching booking:', bookingId);
       const bookings = await base44.entities.Booking.filter({ id: bookingId });
+      console.log('📦 [COCKPIT] Found bookings:', bookings?.length || 0);
       
       if (!bookings || bookings.length === 0) {
         throw new Error('Reserva não encontrada');
@@ -82,11 +84,14 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     const isWalker = booking.walker_email === user.email;
     const isAdmin = user.role === 'admin';
 
+    console.log('🔐 [COCKPIT] Security check:', { isOwner, isWalker, isAdmin, userRole: user.role });
 
     if (!isOwner && !isWalker && !isAdmin) {
       console.error('❌ [COCKPIT] Access denied');
       toast.error('Acesso negado: Não é participante desta reserva');
       navigate(createPageUrl('Home'));
+    } else {
+      console.log('✅ [COCKPIT] Access granted');
     }
   }, [booking, user, navigate]);
 
@@ -108,6 +113,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     const createConversation = async () => {
       if (booking && !conversation && user) {
         try {
+          console.log('🔄 Creating missing conversation for booking:', bookingId);
           const walkerEmail = booking.walker_email;
           const ownerEmail = booking.owner_email || booking.created_by;
           
@@ -128,6 +134,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
               [ownerEmail]: 0
             }
           });
+          console.log('✅ Conversation created:', newConvo.id);
           refetchConversation();
         } catch (err) {
           console.error('Error creating conversation:', err);

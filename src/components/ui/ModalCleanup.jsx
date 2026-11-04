@@ -86,6 +86,7 @@ export function useCloseOnRouteChange(isOpen, onClose) {
     if (!isOpen) return;
 
     const handleRouteChange = () => {
+      console.log('🚪 Route changed, closing modal');
       onClose();
     };
 

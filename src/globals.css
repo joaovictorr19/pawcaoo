@@ -172,28 +172,8 @@
     background-color: transparent !important;
   }
 
-  /* Diálogos seguem o tema (claro/escuro) em vez de branco fixo.
-     Os filhos diretos ficam transparentes e herdam a superfície do próprio
-     diálogo — era esta regra que pintava de branco cabeçalhos e rodapés
-     de janelas com tema escuro. */
-  [data-state="open"][role="dialog"] {
-    background: hsl(var(--background)) !important;
-  }
-
-  /* Janelas de reserva (drawer/vaul): superfície opaca, sem desfoque */
-  [data-vaul-drawer],
-  [data-vaul-drawer] > div,
-  [vaul-drawer],
-  [vaul-drawer] > div {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    opacity: 1 !important;
-  }
-
-  [data-state="open"][role="dialog"] > div {
-    background: transparent !important;
-  }
-
+  [data-state="open"][role="dialog"],
+  [data-state="open"][role="dialog"] > div,
   [vaul-drawer],
   [vaul-drawer] > div {
     background: rgba(255, 255, 255, 0.98) !important;
@@ -434,15 +414,6 @@
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
-  }
-
-  /* Cartões e opções de reserva: o toque não altera a escala.
-     A regra global de `active` encolhia o cartão do animal ao selecionar. */
-  .tap-stable,
-  .tap-stable:active,
-  .tap-stable:focus,
-  .tap-stable:focus-visible {
-    transform: none !important;
   }
 
   /* Seal active background — uses CSS variable to bypass global button[style*="background"] override */

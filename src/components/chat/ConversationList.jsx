@@ -12,6 +12,7 @@ export default function ConversationList({
   onSelect,
   isLoading,
 }) {
+  console.log('📋 ConversationList - Total:', conversations.length, 'User:', currentUserId);
   
   // Separate active services from other conversations
   const activeServiceConvos = conversations.filter(c => 
@@ -25,6 +26,8 @@ export default function ConversationList({
     c.booking?.status !== 'service_completed'
   );
   
+  console.log('   Ativos:', activeServiceConvos.length);
+  console.log('   Outros:', otherConvos.length);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
@@ -119,6 +122,7 @@ export default function ConversationList({
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          console.log('💬 CLICK em conversa:', conv.id);
           onSelect(conv);
         }}
         className={`w-full flex items-center gap-2 md:gap-3 p-2 md:p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left border-b ${

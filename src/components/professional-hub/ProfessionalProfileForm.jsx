@@ -304,7 +304,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(data.location)}`);
         const geo = await res.json();
         if (geo[0]) { lat = parseFloat(geo[0].lat); lng = parseFloat(geo[0].lon); }
-      } catch { /* intentionally ignored */ }
+      } catch {}
 
       const serviceAreas = data.service_areas?.length ? data.service_areas : [{ area_name: data.location, radius_km: data.work_radius_km || 5, latitude: lat, longitude: lng }];
 

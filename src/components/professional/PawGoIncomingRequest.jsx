@@ -7,6 +7,7 @@ export function usePawGoAlert() {
     try {
       const audio = new Audio('/sounds/pawgo-notification.mp3');
       audio.play().catch(err => {
+        console.log("Aguardando interação do utilizador para tocar som");
       });
     } catch (err) {
       console.error("Erro ao carregar áudio:", err);

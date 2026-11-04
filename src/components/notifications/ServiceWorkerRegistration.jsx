@@ -7,6 +7,7 @@ export default function ServiceWorkerRegistration() {
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
       .then((registration) => {
+        console.log('✅ Service Worker registrado:', registration);
       })
       .catch((error) => {
         console.warn('Service Worker indisponível neste ambiente:', error?.message || error);

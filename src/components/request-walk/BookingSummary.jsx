@@ -93,7 +93,7 @@ export default function BookingSummary({ selectedDogs, details, pickupMethod, ad
         </div>
         <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-gray-900">
           <span>Total Estimado</span>
-          <span className="text-[#0d9483] text-lg">€{total.toFixed(2)}</span>
+          <span className="text-green-600 text-lg">€{total.toFixed(2)}</span>
         </div>
         <p className="text-xs text-gray-400">* O valor final pode variar consoante o profissional.</p>
       </div>
@@ -102,7 +102,7 @@ export default function BookingSummary({ selectedDogs, details, pickupMethod, ad
       <button
         onClick={onSubmit}
         disabled={!canSubmit || isSubmitting}
-        className="w-full py-4 bg-[#0d9483] hover:bg-[#0b7f72] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#0d9483]/25"
+        className="w-full py-4 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-200"
       >
         {isSubmitting ? (
           <span>A submeter...</span>

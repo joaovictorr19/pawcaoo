@@ -46,6 +46,7 @@ export default function CheckoutModal({
 
   const handleStripeCheckout = async () => {
     setProcessing(true);
+    console.log('🔵 Iniciando checkout Stripe...');
 
     try {
       // Se houver voucher aplicado, marcar como usado
@@ -55,6 +56,11 @@ export default function CheckoutModal({
         });
       }
 
+      console.log('📦 Payload:', {
+        bookingId: booking.id,
+        voucherCode: appliedVoucher?.redemption_code,
+        discountAmount: appliedVoucher?.euro_value || 0,
+      });
 
       const response = await base44.functions.invoke('createStripeCheckout', {
         bookingId: booking.id,
@@ -64,10 +70,17 @@ export default function CheckoutModal({
         cancelUrl: `${window.location.origin}${createPageUrl('MyBookings')}`,
       });
 
+      console.log('✅ Resposta do backend:', response);
+      console.log('📊 Response structure:', {
+        hasData: !!response?.data,
+        dataKeys: response?.data ? Object.keys(response.data) : [],
+        fullResponse: response
+      });
 
       const checkoutUrl = response?.data?.url;
 
       if (checkoutUrl) {
+        console.log('🔗 Redirecionando para Stripe:', checkoutUrl);
         
         // Add timeout warning
         const timeoutId = setTimeout(() => {
@@ -224,7 +237,7 @@ export default function CheckoutModal({
                   ? 'Pagamento processado de forma segura pelo Stripe. O valor ficará retido até a conclusão do serviço.'
                   : 'Payment securely processed by Stripe. Amount will be held until service completion.'}
               </p>
-              <div className="flex items-center gap-2 text-xs text-green-600 font-medium bg-green-50 p-2 rounded-lg">
+              <div className="flex items-center gap-2 text-xs text-green-600 font-medium bg-white/50 p-2 rounded-lg">
                 <Check className="w-4 h-4" />
                 {language === 'pt' ? '🔒 Pagamento protegido' : '🔒 Protected payment'}
               </div>

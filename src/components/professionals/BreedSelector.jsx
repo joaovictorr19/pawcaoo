@@ -107,6 +107,7 @@ export default function BreedSelector({ selectedBreeds = [], onChange, specializ
         }
       });
       
+      console.log('AI Response:', response);
       const suggestions = (response?.breeds || [])
         .filter(b => b && typeof b === 'string' && b.trim().length > 0)
         .filter(b => !selectedBreeds.includes(b))

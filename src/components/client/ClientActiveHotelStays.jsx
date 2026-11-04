@@ -76,7 +76,7 @@ export default function ClientActiveHotelStays({ user }) {
         try {
           const p = await base44.entities.WalkerProfile.get(id);
           if (p) profiles[id] = p;
-        } catch { /* intentionally ignored */ }
+        } catch {}
       }
       return profiles;
     },
@@ -113,7 +113,7 @@ export default function ClientActiveHotelStays({ user }) {
             related_id: bookingId,
             icon: '🐾',
           });
-        } catch { /* intentionally ignored */ }
+        } catch {}
       }
 
       queryClient.invalidateQueries({ queryKey: ['clientActiveHotelStays'] });

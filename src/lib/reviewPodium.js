@@ -66,23 +66,7 @@ export function getLisbonMonthRange(now = new Date()) {
   };
 }
 
-/** Início e fim (exclusivo) de um mês AAAA-MM no fuso Europe/Lisbon. */
-export function getLisbonRangeForMonthKey(monthKey) {
-  const [yearStr, monthStr] = String(monthKey || "").split("-");
-  const year = Number(yearStr);
-  const monthIndex = Number(monthStr) - 1;
-
-  if (!Number.isFinite(year) || !Number.isFinite(monthIndex) || monthIndex < 0 || monthIndex > 11) {
-    return getLisbonMonthRange(new Date());
-  }
-
-  return {
-    start: lisbonMidnight(year, monthIndex, 1),
-    end: lisbonMidnight(monthIndex === 11 ? year + 1 : year, (monthIndex + 1) % 12, 1),
-  };
-}
-
-/** Pontos de uma review: estrelas (1–5) + bónus de comentário. Usado só no desempate. */
+/** Pontos de uma review: estrelas (1–5) + bónus de comentário. */
 export function scoreReview(review) {
   const rating = Math.round(Number(review?.rating));
   if (!Number.isFinite(rating) || rating < 1 || rating > MAX_STARS) return 0;
@@ -90,36 +74,24 @@ export function scoreReview(review) {
   return rating + (hasComment ? COMMENT_BONUS : 0);
 }
 
-/** Categoria de pódio de um perfil profissional. */
-export function profileCategory(profile) {
-  const type = profile?.professional_type;
-  if (type === "hotel") return "hotel";
-  if (type === "trainer") return "trainer";
-  if (type === "shop") return "shop";
-  return "walker";
-}
-
 /**
- * Pódio de uma categoria: conta as avaliações recebidas no mês para os perfis
- * dessa categoria e ordena pelo número de avaliações.
- * Desempate: pontos das estrelas > avaliação mais recente > nome.
+ * Agrupa reviews por profissional e devolve o topo do ranking mensal.
+ * Desempate: pontos > nº de reviews > review mais recente > nome.
  */
-export function buildCategoryPodium(reviews, profilesById, category, limit = 3) {
+export function buildMonthlyPodium(reviews, limit = 3) {
   const grouped = new Map();
 
   (reviews || []).forEach((review) => {
-    const professionalId = review?.walker_id;
+    const professionalId = review?.walker_id || review?.trainer_id;
     if (!professionalId) return;
-
-    const profile = profilesById?.get?.(professionalId);
-    if (!profile || profileCategory(profile) !== category) return;
 
     const points = scoreReview(review);
     if (points <= 0) return;
 
     const entry = grouped.get(professionalId) || {
       professionalId,
-      name: review.walker_name || "",
+      professionalType: review.walker_id ? "walker" : "trainer",
+      name: review.walker_name || review.trainer_name || "",
       points: 0,
       reviews: 0,
       lastReviewAt: 0,
@@ -127,7 +99,7 @@ export function buildCategoryPodium(reviews, profilesById, category, limit = 3) 
 
     entry.points += points;
     entry.reviews += 1;
-    if (!entry.name) entry.name = review.walker_name || "";
+    if (!entry.name) entry.name = review.walker_name || review.trainer_name || "";
 
     const timestamp = Date.parse(review.created_date || "");
     if (Number.isFinite(timestamp) && timestamp > entry.lastReviewAt) {
@@ -140,8 +112,8 @@ export function buildCategoryPodium(reviews, profilesById, category, limit = 3) 
   return Array.from(grouped.values())
     .sort(
       (a, b) =>
-        b.reviews - a.reviews ||
         b.points - a.points ||
+        b.reviews - a.reviews ||
         b.lastReviewAt - a.lastReviewAt ||
         String(a.name).localeCompare(String(b.name))
     )

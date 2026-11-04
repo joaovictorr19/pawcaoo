@@ -27,8 +27,11 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
               setIsProcessing(true);
               
               try {
+                console.log('✅ ACCEPTING BOOKING (NO PAYMENT CHECK):', booking.id);
+                console.log('   Payment Status:', booking.payment_status);
+                console.log('   Total Amount:', booking.total_amount);
                 await onAccept();
-                toast.success('✅ Pedido aceite!');
+                toast.success('✅ Pedido aceite SEM verificar pagamento!');
               } catch (error) {
                 console.error('Accept error:', error);
                 toast.error('Erro ao aceitar');
@@ -55,6 +58,7 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
               
               setIsProcessing(true);
               try {
+                console.log('❌ Declining booking:', booking.id);
                 await onDecline();
                 toast.success('Pedido recusado');
               } catch (error) {
@@ -101,6 +105,7 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
       return (
         <Button
           onClick={() => {
+            console.log('🚀 WalkerBookingCard - Opening map for booking:', booking.id);
             if (!booking.id) {
               toast.error('Erro: ID de reserva inválido');
               return;

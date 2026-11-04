@@ -212,7 +212,7 @@ export default function ProfileHeroCard({
               alt="Capa"
               loading="eager"
               decoding="async"
-              fetchPriority="high"
+              fetchpriority="high"
               onLoad={() => setCoverLoaded(true)}
             />
           </>

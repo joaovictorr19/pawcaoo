@@ -45,7 +45,7 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
       if (profileEmailParam.includes('%40')) {
         profileEmailParam = decodeURIComponent(profileEmailParam);
       }
-    } catch (e) { /* intentionally ignored */ }
+    } catch (e) {}
   }
 
   const profileIdParam = fixedId || urlParams.get('id');
@@ -94,14 +94,14 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
         try {
           const r = await base44.entities.UserProfile.filter({ username: targetUsername });
           if (r?.length > 0) userProfile = r[0];
-        } catch (e) { /* intentionally ignored */ }
+        } catch (e) {}
       }
 
       if (isSelfView && currentUser?.email && !userProfile) {
         try {
           const r = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
           if (r?.length > 0) userProfile = r[0];
-        } catch (e) { /* intentionally ignored */ }
+        } catch (e) {}
       }
 
       if (!userProfile && targetId) {
@@ -129,16 +129,16 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
               if (tp?.id) {
                 userProfile = { id: tp.id, user_id: tp.user_id || targetId, user_email: tp.created_by, full_name: tp.trainer_name, profile_photo_url: tp.photo_url, bio: tp.bio, city: tp.location, role: 'trainer', is_verified: tp.verification_status === 'verified', is_virtual_profile: true };
               }
-            } catch (e) { /* intentionally ignored */ }
+            } catch (e) {}
           }
 
           if (!userProfile && currentUser?.role === 'admin') {
             try {
               const su = await base44.entities.User.filter({ id: targetId });
               if (su?.length > 0) userProfile = { ...su[0], user_email: su[0].email, user_id: su[0].id, full_name: su[0].full_name || su[0].email.split('@')[0], is_virtual_profile: true };
-            } catch (e) { /* intentionally ignored */ }
+            } catch (e) {}
           }
-        } catch (e) { /* intentionally ignored */ }
+        } catch (e) {}
       }
 
       if (!userProfile) {
@@ -162,9 +162,9 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
               try {
                 const su = await base44.entities.User.filter({ email: emailToSearch });
                 if (su?.length > 0) userProfile = { ...su[0], user_email: su[0].email, user_id: su[0].id, is_virtual_profile: true };
-              } catch (e) { /* intentionally ignored */ }
+              } catch (e) {}
             }
-          } catch (e) { /* intentionally ignored */ }
+          } catch (e) {}
         }
       }
 
@@ -291,7 +291,7 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
           is_own_profile: isOwnProfile,
         },
       });
-    } catch (e) { /* intentionally ignored */ }
+    } catch (e) {}
   }, [walkerProfile, trainerProfile, profileEmail, isOwnProfile]);
 
   const { data: daysOff = [] } = useQuery({

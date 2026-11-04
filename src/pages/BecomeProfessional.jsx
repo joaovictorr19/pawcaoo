@@ -138,6 +138,7 @@ export default function BecomeProfessional() {
         }
       });
       
+      console.log('✅ User updated with unified professional profile');
       
       // Mantemos a criação no WalkerProfile para retrocompatibilidade caso algo antigo o use, 
       // mas o foco principal é a nova entidade unificada.
@@ -239,6 +240,7 @@ export default function BecomeProfessional() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('🚀 Submitting professional profile...', { professionalType, formData });
     
     if (!professionalType) {
       toast.error("Por favor selecione o tipo de profissional");
@@ -343,6 +345,7 @@ export default function BecomeProfessional() {
       consultation_options: Array.isArray(formData.consultation_options) ? formData.consultation_options : []
     };
 
+    console.log('✅ Final data prepared:', finalData);
     
     await createProfileMutation.mutateAsync(finalData);
   };
@@ -855,6 +858,7 @@ export default function BecomeProfessional() {
                         <TrainingSpecializationManager
                           specializations={formData.training_specializations || []}
                           onChange={(specs) => {
+                            console.log('🎓 Specs updated:', specs);
                             setFormData({...formData, training_specializations: specs || []});
                           }}
                         />

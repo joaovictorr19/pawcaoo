@@ -115,7 +115,7 @@ export default function ShortProfile() {
           setResolved({ partnerId: match.id });
           return;
         }
-      } catch (e) { /* intentionally ignored */ }
+      } catch (e) {}
 
       if (!cancelled) setNotFound(true);
     }

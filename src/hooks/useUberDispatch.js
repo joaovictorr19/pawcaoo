@@ -78,6 +78,7 @@ export async function requestServiceWithRetry(getAllOnlineWalkers, requestData, 
   let attempts = 0;
 
   while (!accepted && attempts < maxAttempts) {
+    console.log(`Ciclo de procura ${attempts + 1}/${maxAttempts}`);
 
     const onlineNow = (await getAllOnlineWalkers()).filter(
       (w) => w.is_online || w.pawgo_status?.is_online
