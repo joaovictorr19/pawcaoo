@@ -24,7 +24,7 @@ export function useRealTimeRequests(userEmail) {
         // FEEDBACK DE ELITE:
         // Som de notificação (opcional, requer um ficheiro mp3 na pasta public)
         const audio = new Audio('/sounds/new-request.mp3');
-        audio.play().catch(() => console.log("Som bloqueado pelo browser"));
+        audio.play().catch(() => { /* autoplay bloqueado pelo browser */ });
 
         // Vibração física (Padrão: Curto-Longo-Curto)
         if ("vibrate" in navigator) {

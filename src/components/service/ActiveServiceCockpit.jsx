@@ -87,7 +87,6 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
       console.error('❌ [COCKPIT] Access denied');
       toast.error('Acesso negado: Não é participante desta reserva');
       navigate(createPageUrl('Home'));
-    } else {
     }
   }, [booking, user, navigate]);
 

@@ -30,8 +30,6 @@ export default function PartnerServices() {
     queryKey: ['partnerServices'],
     queryFn: async () => {
       const all = await base44.entities.PartnerService.list('-created_date');
-      
-      
 
       // Se for empresa: mostrar TODOS os seus serviços (aprovados, pendentes, rejeitados)
       if (isCompany && user?.email) {
@@ -56,7 +54,7 @@ export default function PartnerServices() {
     staleTime: 0,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
-    refetchInterval: 3000, // Poll every 3 seconds
+    refetchInterval: 30000,
   });
 
   const serviceTypes = [
