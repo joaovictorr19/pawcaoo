@@ -22,15 +22,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('🟢 User authenticated:', user.email);
 
     const payload = await req.json();
-    console.log('📥 Received payload:', JSON.stringify(payload));
 
     const { walletTopup, amount, productName } = payload || {};
 
     // Handle wallet top-up flow
     if (walletTopup && amount) {
+      // Validação server-side do montante (em cêntimos): inteiro, mínimo da Stripe (€0,50) e teto de €5.000
+      const topupCents = Number(amount);
+      if (!Number.isInteger(topupCents) || topupCents < 50 || topupCents > 500000) {
+        return Response.json({ error: 'Montante de carregamento inválido' }, { status: 400 });
+      }
       const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
       const session = await stripe.checkout.sessions.create({
         mode: 'payment',
@@ -44,7 +47,7 @@ Deno.serve(async (req) => {
             price_data: {
               currency: 'eur',
               product_data: { name: productName || 'Wallet Top-up' },
-              unit_amount: parseInt(amount, 10), // amount already in cents from frontend
+              unit_amount: topupCents,
             },
             quantity: 1,
           },
@@ -55,7 +58,7 @@ Deno.serve(async (req) => {
         metadata: {
           wallet_topup: 'true',
           user_email: user.email,
-          topup_amount_cents: String(amount),
+          topup_amount_cents: String(topupCents),
         },
       });
       console.log('✅ Wallet top-up session created:', session.id);

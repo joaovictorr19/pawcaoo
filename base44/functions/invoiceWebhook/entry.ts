@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 // This webhook is triggered when booking status changes to 'completed'
@@ -21,7 +22,9 @@ Deno.serve(async (req) => {
     }
 
     const expectedAuth = `Bearer ${webhookSecret}`;
-    if (authHeader !== expectedAuth) {
+    const a = new TextEncoder().encode(authHeader);
+    const b = new TextEncoder().encode(expectedAuth);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
       return Response.json({ error: 'Invalid authorization' }, { status: 401 });
     }
 

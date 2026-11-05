@@ -163,9 +163,7 @@ async function handlePaymentSuccess(base44, paymentIntent) {
             }
 
             console.log('📋 Found booking:', booking.dog_name);
-            console.log('   Walker Email:', booking.walker_email);
             console.log('   Walker ID:', booking.walker_id);
-            console.log('   Owner Email:', booking.owner_email || booking.created_by);
             
             // CHECK WALKER COMMISSION SETTINGS (full check, not just exempt flag)
             const walkerProfiles = await base44.asServiceRole.entities.WalkerProfile.filter({
