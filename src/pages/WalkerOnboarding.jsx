@@ -30,7 +30,7 @@ export default function WalkerOnboarding() {
     try {
       const saved = sessionStorage.getItem("walker_onboarding_form");
       if (saved) return JSON.parse(saved);
-    } catch (e) {}
+    } catch (e) { /* intentionally ignored */ }
     return {
       walker_name: "",
       location: "",
@@ -137,7 +137,7 @@ export default function WalkerOnboarding() {
   const set = (key, val) => {
     setForm(prev => {
       const updated = { ...prev, [key]: val };
-      try { sessionStorage.setItem("walker_onboarding_form", JSON.stringify(updated)); } catch (e) {}
+      try { sessionStorage.setItem("walker_onboarding_form", JSON.stringify(updated)); } catch (e) { /* intentionally ignored */ }
       return updated;
     });
   };

@@ -195,7 +195,7 @@ export default function ProfessionalSetup() {
       const updated = { ...prev, [key]: val };
       try {
         sessionStorage.setItem('professional_setup_form', JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { /* intentionally ignored */ }
       return updated;
     });
   };

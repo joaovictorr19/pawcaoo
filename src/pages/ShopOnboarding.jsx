@@ -26,7 +26,7 @@ export default function ShopOnboarding() {
     try {
       const saved = sessionStorage.getItem("shop_onboarding_form");
       if (saved) return JSON.parse(saved);
-    } catch (e) {}
+    } catch (e) { /* intentionally ignored */ }
     return {
       shop_name: "",
       location: "",
@@ -104,7 +104,7 @@ export default function ShopOnboarding() {
       const updated = { ...prev, [key]: val };
       try {
         sessionStorage.setItem("shop_onboarding_form", JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { /* intentionally ignored */ }
       return updated;
     });
   };

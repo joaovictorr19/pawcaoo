@@ -28,7 +28,7 @@ export default function LocationInput({ address, onAddressChange, onCoordsChange
           if (data.display_name) {
             onAddressChange(data.display_name);
           }
-        } catch (_) {}
+        } catch (_) { /* intentionally ignored */ }
         setLocating(false);
       },
       () => setLocating(false),

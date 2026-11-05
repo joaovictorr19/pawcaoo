@@ -31,23 +31,7 @@ export default function PartnerServices() {
     queryFn: async () => {
       const all = await base44.entities.PartnerService.list('-created_date');
       
-      console.log('\n🔧 === PARTNER SERVICES - DEBUG COMPLETO ===');
-      console.log('📊 Total de serviços no banco:', all.length);
-      console.log('👤 Usuário logado:', user?.email, '| Tipo:', user?.account_type);
       
-      all.forEach((s, i) => {
-        console.log(`\n📋 SERVIÇO ${i + 1}:`, {
-          id: s.id.substring(0, 8),
-          name: s.service_name,
-          partner: s.partner_name,
-          partner_email: s.partner_company_email,
-          created_by: s.created_by,
-          location: s.location,
-          moderation: s.moderation_status,
-          is_active: s.is_active,
-          price: s.base_price
-        });
-      });
 
       // Se for empresa: mostrar TODOS os seus serviços (aprovados, pendentes, rejeitados)
       if (isCompany && user?.email) {
@@ -55,8 +39,6 @@ export default function PartnerServices() {
           s.partner_company_email === user.email || 
           s.created_by === user.email
         );
-        console.log('\n🏢 MEUS SERVIÇOS (empresa):', mine.length);
-        console.log('Títulos:', mine.map(s => s.service_name));
         return mine;
       }
 
@@ -66,11 +48,6 @@ export default function PartnerServices() {
         s.is_active === true
       );
       
-      console.log('\n✅ SERVIÇOS PÚBLICOS (aprovados + ativos):', approvedAndActive.length);
-      console.log('Títulos:', approvedAndActive.map(s => s.service_name));
-      console.log('Localidades:', approvedAndActive.map(s => s.location));
-      console.log('Empresas:', approvedAndActive.map(s => s.partner_name));
-      console.log('=================================\n');
 
       return approvedAndActive;
     },
@@ -103,7 +80,6 @@ export default function PartnerServices() {
     return matchesSearch && matchesType;
   });
 
-  console.log('🎯 MOSTRANDO:', filteredServices.length, 'serviços');
 
   const getServiceIcon = (type) => {
     const found = serviceTypes.find(s => s.id === type);

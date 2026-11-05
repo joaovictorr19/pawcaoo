@@ -48,7 +48,6 @@ export default function GamificationSyncButton() {
                     trainingBookings = await base44.entities.TrainingBooking.filter({ status: 'completed' }, null, 1000);
                 }
             } catch (e) {
-                console.log("Training bookings skipped or not available");
             }
 
             const allBookings = [...bookings, ...trainingBookings];
@@ -62,7 +61,6 @@ export default function GamificationSyncButton() {
                     clientReviews = await base44.entities.ClientReview.list(null, 1000);
                 }
             } catch (e) {
-                console.log("Client reviews skipped");
             }
             addLog(`${proReviews.length + clientReviews.length} avaliações encontradas.`);
 

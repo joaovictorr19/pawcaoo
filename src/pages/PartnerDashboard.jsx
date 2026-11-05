@@ -155,10 +155,6 @@ export default function PartnerDashboard() {
 
       const all = await base44.entities.CompanyAnnouncement.list();
       
-      console.log('📢 MEUS ANÚNCIOS - DEBUG:');
-      console.log('Total DB:', all.length);
-      console.log('Meu email:', user.email);
-      console.log('Company ID:', company.id);
       
       const mine = all.filter(a => 
         a.company_email === user.email || 
@@ -166,10 +162,6 @@ export default function PartnerDashboard() {
         a.created_by === user.email
       );
       
-      console.log('MEUS:', mine.length);
-      mine.forEach(a => {
-        console.log(`- ${a.title}: ${a.moderation_status}, active=${a.is_active}`);
-      });
       
       return mine;
     },
@@ -293,9 +285,7 @@ export default function PartnerDashboard() {
         moderation_status: 'pending'
       };
       
-      console.log('🚀 CRIANDO PRODUTO:', payload);
       const result = await base44.entities.PartnerProduct.create(payload);
-      console.log('✅ PRODUTO CRIADO:', result);
       
       return result;
     },
@@ -335,11 +325,9 @@ export default function PartnerDashboard() {
         is_active: true
       };
 
-      console.log('🚀 CRIANDO SERVIÇO:', payload);
       
       const result = await base44.entities.PartnerService.create(payload);
       
-      console.log('✅ SERVIÇO CRIADO:', result);
       
       return result;
     },
@@ -380,11 +368,9 @@ export default function PartnerDashboard() {
         is_active: true
       };
 
-      console.log('🚀 CRIANDO ANÚNCIO:', payload);
       
       const result = await base44.entities.CompanyAnnouncement.create(payload);
       
-      console.log('✅ ANÚNCIO CRIADO:', result);
       
       return result;
     },

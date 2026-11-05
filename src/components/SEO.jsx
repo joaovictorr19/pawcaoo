@@ -45,11 +45,11 @@ export default function SEO({ title, description, keywords, image, url, type = '
       <link rel="canonical" href={currentUrl} />
 
       {/* Hreflang Tags */}
-      <link rel="alternate" hreflang="pt" href={`${window.location.origin}${window.location.pathname}?lang=pt`} />
-      <link rel="alternate" hreflang="es" href={`${window.location.origin}${window.location.pathname}?lang=es`} />
-      <link rel="alternate" hreflang="fr" href={`${window.location.origin}${window.location.pathname}?lang=fr`} />
-      <link rel="alternate" hreflang="en" href={`${window.location.origin}${window.location.pathname}?lang=en`} />
-      <link rel="alternate" hreflang="x-default" href={`${window.location.origin}${window.location.pathname}?lang=pt`} />
+      <link rel="alternate" hrefLang="pt" href={`${window.location.origin}${window.location.pathname}?lang=pt`} />
+      <link rel="alternate" hrefLang="es" href={`${window.location.origin}${window.location.pathname}?lang=es`} />
+      <link rel="alternate" hrefLang="fr" href={`${window.location.origin}${window.location.pathname}?lang=fr`} />
+      <link rel="alternate" hrefLang="en" href={`${window.location.origin}${window.location.pathname}?lang=en`} />
+      <link rel="alternate" hrefLang="x-default" href={`${window.location.origin}${window.location.pathname}?lang=pt`} />
 
       {/* JSON-LD Schema */}
       {schema && (
